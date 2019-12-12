@@ -17,7 +17,7 @@ func Parse(filePath string) (*dic.ObjectDic, error) {
 	}
 
 	// Create object dictionary
-	ddic := &dic.ObjectDic{}
+	ddic := dic.NewObjectDic()
 
 	// Get NodeID & Baudrate
 	if sec, err := iniData.GetSection("DeviceComissioning"); err == nil {

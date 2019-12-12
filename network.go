@@ -3,6 +3,7 @@ package canopen
 import (
 	"fmt"
 	"github.com/angelodlfrtr/go-can"
+	"github.com/angelodlfrtr/go-can/frame"
 	"github.com/angelodlfrtr/go-canopen/dic"
 	"github.com/thoas/go-funk"
 	"log"
@@ -29,7 +30,7 @@ func (network *Network) Listen() {
 }
 
 func (network *Network) Send(arbID uint32, data []byte) error {
-	frm := &can.Frame{
+	frm := &frame.Frame{
 		ArbitrationID: arbID,
 		DLC:           uint8(len(data)),
 	}
@@ -100,7 +101,7 @@ func (network *Network) Search(limit int, timeout time.Duration) ([]*Node, error
 			break
 		}
 
-		frm := &can.Frame{}
+		frm := &frame.Frame{}
 		ok, err := network.Bus.Read(frm)
 
 		if err != nil {

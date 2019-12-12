@@ -15,6 +15,13 @@ type ObjectDic struct {
 	NamesIndex map[string]int
 }
 
+func NewObjectDic() *ObjectDic {
+	return &ObjectDic{
+		Indexes:    map[int]Object{},
+		NamesIndex: map[string]int{},
+	}
+}
+
 func (objectDic *ObjectDic) AddObject(object Object) {
 	objectDic.Indexes[object.GetIndex()] = object
 	objectDic.NamesIndex[object.GetName()] = object.GetIndex()
