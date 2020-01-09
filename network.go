@@ -8,7 +8,7 @@ import (
 	"github.com/angelodlfrtr/go-can"
 	"github.com/angelodlfrtr/go-can/frame"
 	"github.com/angelodlfrtr/go-canopen/dic"
-	"github.com/thoas/go-funk"
+	"github.com/angelodlfrtr/go-canopen/utils"
 )
 
 // Network represent the global nodes network
@@ -86,7 +86,7 @@ func (network *Network) Search(limit int, timeout time.Duration) ([]*Node, error
 
 	// Send ping for `limit` nodes
 	for i := 0; i <= limit+1; i++ {
-		if err := network.Send(uint32(0x600+1), reqData); err != nil {
+		if err := network.Send(uint32(0x600+i), reqData); err != nil {
 			return nodes, err
 		}
 	}
@@ -113,8 +113,25 @@ func (network *Network) Search(limit int, timeout time.Duration) ([]*Node, error
 			service := frm.ArbitrationID & 0x780
 			nodeID := int(frm.ArbitrationID & 0x7F)
 
-			if !funk.Contains(services, uint32(nodeID)) && nodeID != 0 && funk.Contains(services, service) {
-				nodes = append(nodes, &Node{ID: nodeID})
+			if nodeID != 0 {
+				if !utils.ContainsUint32(services, uint32(nodeID)) {
+					if utils.ContainsUint32(services, service) {
+						// Append only if not already exist in nodes slice
+						nodeExist := false
+						for _, n := range nodes {
+							if n.ID == nodeID {
+								nodeExist = true
+								break
+							}
+						}
+
+						if nodeExist {
+							continue
+						}
+
+						nodes = append(nodes, &Node{ID: nodeID})
+					}
+				}
 			}
 		}
 	}
