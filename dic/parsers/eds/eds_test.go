@@ -1957,27 +1957,35 @@ ObjFlags=0x0
 `
 
 func TestParse(t *testing.T) {
-	// Create tmp file
-	tmpFile, err := ioutil.TempFile("", "")
-	if err != nil {
-		t.Fatal(err)
-	}
+	testFile := ""
 
-	// Remove file at end
-	defer os.Remove(tmpFile.Name())
+	if a := os.Getenv("CAN_TEST_EDS"); len(a) > 0 {
+		testFile = a
+	} else {
+		// Create tmp file
+		tmpFile, err := ioutil.TempFile("", "")
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	// Write TEST_EDS_FILE in tmp file
-	if _, err := tmpFile.Write([]byte(TestEDSFile)); err != nil {
-		t.Fatal(err)
-	}
+		// Remove file at end
+		defer os.Remove(tmpFile.Name())
 
-	// Close file
-	if err := tmpFile.Close(); err != nil {
-		t.Fatal(err)
+		// Write TestEDSFile in tmp file
+		if _, err := tmpFile.Write([]byte(TestEDSFile)); err != nil {
+			t.Fatal(err)
+		}
+
+		// Close file
+		if err := tmpFile.Close(); err != nil {
+			t.Fatal(err)
+		}
+
+		testFile = tmpFile.Name()
 	}
 
 	// Parse file
-	dic, err := Parse(tmpFile.Name())
+	dic, err := Parse(testFile)
 
 	if err != nil {
 		t.Fatal(err)

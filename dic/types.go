@@ -1,7 +1,7 @@
 package dic
 
 import (
-	"github.com/thoas/go-funk"
+	"github.com/angelodlfrtr/go-canopen/utils"
 )
 
 const (
@@ -31,7 +31,7 @@ const (
 )
 
 func IsSignedType(t byte) bool {
-	return funk.Contains([]byte{
+	return utils.ContainsByte([]byte{
 		Integer8,
 		Integer16,
 		Integer32,
@@ -40,7 +40,7 @@ func IsSignedType(t byte) bool {
 }
 
 func IsUnsignedType(t byte) bool {
-	return funk.Contains([]byte{
+	return utils.ContainsByte([]byte{
 		Unsigned8,
 		Unsigned16,
 		Unsigned32,
@@ -49,7 +49,7 @@ func IsUnsignedType(t byte) bool {
 }
 
 func IsIntegerType(t byte) bool {
-	return funk.Contains([]byte{
+	return utils.ContainsByte([]byte{
 		Unsigned8,
 		Unsigned16,
 		Unsigned32,
@@ -62,14 +62,14 @@ func IsIntegerType(t byte) bool {
 }
 
 func IsFloatType(t byte) bool {
-	return funk.Contains([]byte{
+	return utils.ContainsByte([]byte{
 		Real32,
 		Real64,
 	}, t)
 }
 
 func IsNumberType(t byte) bool {
-	return funk.Contains([]byte{
+	return utils.ContainsByte([]byte{
 		Unsigned8,
 		Unsigned16,
 		Unsigned32,
@@ -84,7 +84,7 @@ func IsNumberType(t byte) bool {
 }
 
 func IsDataType(t byte) bool {
-	return funk.Contains([]byte{
+	return utils.ContainsByte([]byte{
 		VisibleString,
 		OctetString,
 		UnicodeString,

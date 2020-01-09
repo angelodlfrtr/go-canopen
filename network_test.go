@@ -1,6 +1,7 @@
 package canopen
 
 import (
+	"os"
 	"testing"
 	"time"
 
@@ -8,11 +9,16 @@ import (
 	"github.com/angelodlfrtr/go-can/transports"
 )
 
-const TestPort string = "/dev/tty.usbserial-14220"
+const TestPort string = "/dev/tty.some-usbserial"
 
 func TestSearch(t *testing.T) {
+	testPort := TestPort
+	if a := os.Getenv("CAN_TEST_PORT"); len(a) > 0 {
+		testPort = a
+	}
+
 	transport := &transports.USBCanAnalyzer{
-		Port:     TestPort,
+		Port:     testPort,
 		BaudRate: 2000000,
 	}
 
