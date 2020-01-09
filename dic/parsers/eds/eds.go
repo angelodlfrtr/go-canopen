@@ -2,11 +2,12 @@ package eds
 
 import (
 	"fmt"
-	"github.com/angelodlfrtr/go-canopen/dic"
-	"gopkg.in/ini.v1"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/angelodlfrtr/go-canopen/dic"
+	"gopkg.in/ini.v1"
 )
 
 func Parse(filePath string) (*dic.ObjectDic, error) {
@@ -34,12 +35,15 @@ func Parse(filePath string) (*dic.ObjectDic, error) {
 		}
 	}
 
+	matchIdxRegexp := regexp.MustCompile(`^[0-9A-Fa-f]{4}$`)
+	matchSubIdxRegexp := regexp.MustCompile(`^([0-9A-Fa-f]{4})sub([0-9A-Fa-f]+)$`)
+
 	// Iterate over sections
 	for _, sec := range iniData.Sections() {
 		sectionName := sec.Name()
 
 		// Match index
-		if ok, _ := regexp.MatchString(`^[0-9A-Fa-f]{4}$`, sectionName); ok {
+		if matchIdxRegexp.MatchString(sectionName) {
 			var index int
 			if i, err := strconv.ParseInt(sectionName, 0, 0); err != nil {
 				index = int(i)
@@ -49,19 +53,19 @@ func Parse(filePath string) (*dic.ObjectDic, error) {
 			objectType, _ := strconv.ParseInt(sec.Key("ObjectType").String(), 0, 0)
 
 			// Object type == VARIABLE
-			if byte(objectType) == dic.VAR {
+			if byte(objectType) == dic.Var {
 				variable := buildVariable(index, 0, name, sec, iniData)
 				ddic.AddObject(variable)
 			}
 
 			// Object type == ARRAY
-			if byte(objectType) == dic.ARR {
+			if byte(objectType) == dic.Arr {
 				array := &dic.Array{Index: index, Name: name}
 				ddic.AddObject(array)
 			}
 
 			// Object type == RECORD
-			if byte(objectType) == dic.RECORD {
+			if byte(objectType) == dic.Rec {
 				record := &dic.Record{Index: index, Name: name}
 				ddic.AddObject(record)
 			}
@@ -70,7 +74,7 @@ func Parse(filePath string) (*dic.ObjectDic, error) {
 		}
 
 		// Match sub-indexs
-		if ok, _ := regexp.MatchString(`^([0-9A-Fa-f]{4})sub([0-9A-Fa-f]+)$`, sectionName); ok {
+		if matchSubIdxRegexp.MatchString(sectionName) {
 			var index, subIndex int
 			if i, err := strconv.ParseInt(sectionName[0:4], 16, 0); err == nil {
 				index = int(i)

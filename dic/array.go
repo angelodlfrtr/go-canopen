@@ -31,7 +31,7 @@ func (array *Array) FindIndex(index int) (Object, error) {
 		return object, nil
 	}
 
-	return nil, fmt.Errorf("Object with index %d not found in array", index)
+	return nil, fmt.Errorf("object with index %d not found in array", index)
 }
 
 func (array *Array) FindName(name string) (Object, error) {
@@ -39,5 +39,5 @@ func (array *Array) FindName(name string) (Object, error) {
 		return array.SubIndexes[index], nil
 	}
 
-	return nil, fmt.Errorf("Object with name %s not found in array", name)
+	return nil, fmt.Errorf("object with name %s not found in array", name)
 }

@@ -32,7 +32,7 @@ func (objectDic *ObjectDic) FindIndex(index int) (Object, error) {
 		return object, nil
 	}
 
-	return nil, fmt.Errorf("Object with index %d not found in dictionnary", index)
+	return nil, fmt.Errorf("object with index %d not found in dictionary", index)
 }
 
 func (objectDic *ObjectDic) FindName(name string) (Object, error) {
@@ -40,5 +40,5 @@ func (objectDic *ObjectDic) FindName(name string) (Object, error) {
 		return objectDic.Indexes[index], nil
 	}
 
-	return nil, fmt.Errorf("Object with name %s not found in dictionnary", name)
+	return nil, fmt.Errorf("object with name %s not found in dictionary", name)
 }

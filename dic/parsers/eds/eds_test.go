@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-const TEST_EDS_FILE string = `
+const TestEDSFile string = `
 [Comments]
 
 Lines=2
@@ -1967,7 +1967,7 @@ func TestParse(t *testing.T) {
 	defer os.Remove(tmpFile.Name())
 
 	// Write TEST_EDS_FILE in tmp file
-	if _, err := tmpFile.Write([]byte(TEST_EDS_FILE)); err != nil {
+	if _, err := tmpFile.Write([]byte(TestEDSFile)); err != nil {
 		t.Fatal(err)
 	}
 

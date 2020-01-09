@@ -1,8 +1,9 @@
 package pdo
 
 import (
-	"github.com/angelodlfrtr/go-canopen/dic"
 	"time"
+
+	"github.com/angelodlfrtr/go-canopen/dic"
 )
 
 type Map struct {

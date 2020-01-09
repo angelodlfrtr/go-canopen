@@ -12,7 +12,7 @@ type Node struct {
 	// Network the node network
 	Network *Network
 
-	// ObjectDic is the node object dictionnary
+	// ObjectDic is the node object dictionary
 	ObjectDic *dic.ObjectDic
 }
 

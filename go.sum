@@ -2,6 +2,8 @@ github.com/angelodlfrtr/go-can v0.0.0-20190912115101-c205b99ba580 h1:SN/RaeNiISN
 github.com/angelodlfrtr/go-can v0.0.0-20190912115101-c205b99ba580/go.mod h1:e9NV8485R6+MwVHY1424SxwpCzsIRYd6I8noHvgHzQQ=
 github.com/angelodlfrtr/go-can v0.0.0-20191211161553-302523687b9d h1:uy10LdFdcq8P+eJHOE74zy7WhYgwS5JYsqsA2EbcjG0=
 github.com/angelodlfrtr/go-can v0.0.0-20191211161553-302523687b9d/go.mod h1:e9NV8485R6+MwVHY1424SxwpCzsIRYd6I8noHvgHzQQ=
+github.com/angelodlfrtr/go-can v0.0.0-20200109103909-24903d17e604 h1:GanR1lOSchSBqkFX7mVBb9A/4Upv794OSEsME1Rh5t4=
+github.com/angelodlfrtr/go-can v0.0.0-20200109103909-24903d17e604/go.mod h1:e9NV8485R6+MwVHY1424SxwpCzsIRYd6I8noHvgHzQQ=
 github.com/angelodlfrtr/serial v0.0.0-20190912094943-d028474db63c h1:Q5NYSNKJn3QdfE4q7yG6m+r0OLFrsC94KDQPGqj5OkE=
 github.com/angelodlfrtr/serial v0.0.0-20190912094943-d028474db63c/go.mod h1:kGJNzwu4M6uVHZPXuE7m6+f3BvYrhFH76a90n69CxEk=
 github.com/brutella/can v0.0.1 h1:Rz+2Zuje3NT79daon8wPN9+VphH3/kl1DP8Dhf/k1NI=

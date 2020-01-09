@@ -31,7 +31,7 @@ func (record *Record) FindIndex(index int) (Object, error) {
 		return object, nil
 	}
 
-	return nil, fmt.Errorf("Object with index %d not found in record", index)
+	return nil, fmt.Errorf("object with index %d not found in record", index)
 }
 
 func (record *Record) FindName(name string) (Object, error) {
@@ -39,5 +39,5 @@ func (record *Record) FindName(name string) (Object, error) {
 		return record.SubIndexes[index], nil
 	}
 
-	return nil, fmt.Errorf("Object with name %s not found in record", name)
+	return nil, fmt.Errorf("object with name %s not found in record", name)
 }

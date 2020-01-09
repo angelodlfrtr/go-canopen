@@ -2,12 +2,13 @@ package canopen
 
 import (
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/angelodlfrtr/go-can"
 	"github.com/angelodlfrtr/go-can/frame"
 	"github.com/angelodlfrtr/go-canopen/dic"
 	"github.com/thoas/go-funk"
-	"log"
-	"time"
 )
 
 // Network represent the global nodes network
@@ -68,12 +69,12 @@ func (network *Network) AddNode(n Node, objectDic *dic.ObjectDic, uploadEDS bool
 }
 
 // GetNode by node id. Return error if node dont exist in network.Nodes
-func (network *Network) GetNode(nodeId int) (*Node, error) {
-	if node, ok := network.Nodes[nodeId]; ok {
+func (network *Network) GetNode(nodeID int) (*Node, error) {
+	if node, ok := network.Nodes[nodeID]; ok {
 		return node, nil
 	}
 
-	return nil, fmt.Errorf("No node with id %d", nodeId)
+	return nil, fmt.Errorf("no node with id %d", nodeID)
 }
 
 // Search send data to network and wait for nodes response
