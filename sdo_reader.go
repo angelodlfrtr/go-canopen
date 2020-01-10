@@ -148,7 +148,7 @@ func (reader *SDOReader) ReadAll() ([]byte, error) {
 
 		resCommand := frm.Data[0]
 		if (resCommand & SDOToggleBit) != reader.Toggle {
-			return nil, errors.New("Toggle bit mismatch")
+			return nil, errors.New("toggle bit mismatch")
 		}
 
 		length := int(7 - ((resCommand >> 1) & 0x7))

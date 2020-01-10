@@ -10,12 +10,16 @@ type PDOMaps struct {
 func NewPDOMaps(comOffset, mapOffset int, pdoNode *PDONode) *PDOMaps {
 	pdoMaps := &PDOMaps{
 		PDONode: pdoNode,
-		Maps:    map[int]*PDOMap{},
+		Maps:    make(map[int]*PDOMap),
 	}
 
 	for i := 0; i < 32; i++ {
 		if comSdo := pdoMaps.PDONode.Node.ObjectDic.FindIndex(uint16(comOffset + i)); comSdo != nil {
 			mapSdo := pdoMaps.PDONode.Node.ObjectDic.FindIndex(uint16(mapOffset + i))
+
+			comSdo.SetSDO(pdoMaps.PDONode.Node.SDOClient)
+			mapSdo.SetSDO(pdoMaps.PDONode.Node.SDOClient)
+
 			pdoMaps.Maps[i+1] = NewPDOMap(pdoNode, comSdo, mapSdo)
 		}
 	}

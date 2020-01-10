@@ -2,6 +2,7 @@ package canopen
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/angelodlfrtr/go-can/frame"
@@ -41,7 +42,7 @@ func NewSDOClient(node *Node) *SDOClient {
 
 // SendRequest to network bus
 func (sdoClient *SDOClient) SendRequest(req []byte) error {
-	return sdoClient.Node.Network.Send(uint32(sdoClient.RXCobID), req)
+	return sdoClient.Node.Network.Send(sdoClient.RXCobID, req)
 }
 
 // Send message and optionaly wait for response
@@ -77,20 +78,25 @@ func (sdoClient *SDOClient) Send(
 	start := time.Now()
 
 	for {
-		if time.Since(start) > *timeout {
-			return nil, errors.New("timeout exceeded")
-		}
-
-		fr, ok := <-framesChan.Chan
-		if ok {
+		select {
+		case fr := <-framesChan.Chan:
 			frm = fr
 			break
+		default:
+			if time.Since(start) > *timeout {
+				fmt.Println(time.Since(start) > *timeout)
+				break
+			}
 		}
 	}
 
 	// Release data chan
 	if err := sdoClient.Node.Network.ReleaseFramesChan(framesChan.ID); err != nil {
 		return frm, err
+	}
+
+	if frm == nil {
+		return nil, errors.New("timeout exceeded")
 	}
 
 	return frm, nil

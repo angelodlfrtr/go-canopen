@@ -5,20 +5,26 @@ type DicRecord struct {
 	Index       uint16
 	Name        string
 
+	SDOClient *SDOClient
+
 	SubIndexes map[uint8]DicObject
 	SubNames   map[string]uint8
 }
 
+// GetIndex of DicRecord
 func (record *DicRecord) GetIndex() uint16 {
 	return record.Index
 }
 
+// GetSubIndex not applicable
 func (record *DicRecord) GetSubIndex() uint8 { return 0 }
 
+// GetName of DicRecord
 func (record *DicRecord) GetName() string {
 	return record.Name
 }
 
+// AddMember to DicRecord
 func (record *DicRecord) AddMember(object DicObject) {
 	if record.SubIndexes == nil {
 		record.SubIndexes = map[uint8]DicObject{}
@@ -32,23 +38,30 @@ func (record *DicRecord) AddMember(object DicObject) {
 	record.SubNames[object.GetName()] = object.GetSubIndex()
 }
 
+// FindIndex find by index a DicObject in DicRecord
 func (record *DicRecord) FindIndex(index uint16) DicObject {
 	if object, ok := record.SubIndexes[uint8(index)]; ok {
+		object.SetSDO(record.SDOClient)
 		return object
 	}
 
 	return nil
 }
 
+// FindName find by name a DicObject in DicRecord
 func (record *DicRecord) FindName(name string) DicObject {
 	if index, ok := record.SubNames[name]; ok {
-		return record.SubIndexes[index]
+		return record.FindIndex(uint16(index))
 	}
 
 	return nil
 }
 
-func (record *DicRecord) SetSDO(sdo *SDOClient) {}
+// SetSDO to DicRecord
+func (record *DicRecord) SetSDO(sdo *SDOClient) {
+	record.SDOClient = sdo
+}
+
 func (record *DicRecord) IsDicVariable() bool   { return false }
 func (record *DicRecord) GetDataLen() int       { return 0 }
 func (record *DicRecord) SetSize(s int)         {}

@@ -1,7 +1,6 @@
 package canopen
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -11,7 +10,7 @@ const (
 )
 
 type PDOMap struct {
-	Node      *PDONode
+	PDONode   *PDONode
 	ComRecord DicObject
 	MapArray  DicObject
 
@@ -35,7 +34,7 @@ type PDOMap struct {
 
 func NewPDOMap(pdoNode *PDONode, comRecord, mapArray DicObject) *PDOMap {
 	pdoMap := &PDOMap{
-		Node:       pdoNode,
+		PDONode:    pdoNode,
 		ComRecord:  comRecord,
 		MapArray:   mapArray,
 		RTRAllowed: true,
@@ -95,8 +94,6 @@ func (m *PDOMap) Listen() error {
 
 // Read a map
 func (m *PDOMap) Read() error {
-	fmt.Println(m.ComRecord)
-
 	// Get COB ID
 	if err := m.ComRecord.FindIndex(1).Read(); err != nil {
 		return err
@@ -157,11 +154,12 @@ func (m *PDOMap) Read() error {
 			continue
 		}
 
-		dicVar := m.Node.Node.ObjectDic.FindIndex(index)
+		dicVar := m.PDONode.Node.ObjectDic.FindIndex(index)
 		// Instead of dicVar.Size = size @TODO: use uint64 for size
 		dicVar.SetSize(int(size))
-		// Instead of dicVar.SDO = sdo
-		dicVar.SetSDO(m.Node.Node.SDOClient)
+
+		// Set sdo client
+		dicVar.SetSDO(m.PDONode.Node.SDOClient)
 
 		if !dicVar.IsDicVariable() {
 			dicVar = dicVar.FindIndex(subindex)
@@ -171,7 +169,7 @@ func (m *PDOMap) Read() error {
 		// @TODO: check working
 		m.Map[i] = dicVar
 
-		// @TODO: use int64
+		// @TODO: use uint64
 		offset += int(size)
 	}
 

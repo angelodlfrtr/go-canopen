@@ -5,6 +5,8 @@ type DicArray struct {
 	Index       uint16
 	Name        string
 
+	SDOClient *SDOClient
+
 	SubIndexes map[uint8]DicObject
 	SubNames   map[string]uint8
 }
@@ -35,6 +37,7 @@ func (array *DicArray) AddMember(object DicObject) {
 
 func (array *DicArray) FindIndex(index uint16) DicObject {
 	if object, ok := array.SubIndexes[uint8(index)]; ok {
+		object.SetSDO(array.SDOClient)
 		return object
 	}
 
@@ -43,13 +46,16 @@ func (array *DicArray) FindIndex(index uint16) DicObject {
 
 func (array *DicArray) FindName(name string) DicObject {
 	if index, ok := array.SubNames[name]; ok {
-		return array.SubIndexes[index]
+		return array.FindIndex(uint16(index))
 	}
 
 	return nil
 }
 
-func (array *DicArray) SetSDO(sdo *SDOClient) {}
+func (array *DicArray) SetSDO(sdo *SDOClient) {
+	array.SDOClient = sdo
+}
+
 func (array *DicArray) IsDicVariable() bool   { return false }
 func (array *DicArray) GetDataLen() int       { return 0 }
 func (array *DicArray) SetSize(s int)         {}
