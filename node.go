@@ -1,19 +1,26 @@
 package canopen
 
-import (
-	"github.com/angelodlfrtr/go-canopen/dic"
-)
-
 // Node is a canopen node
 type Node struct {
 	// Each node has an id, which is ArbitrationID & 0x7F
 	ID int
 
-	// Network the node network
-	Network *Network
+	Network   *Network
+	ObjectDic *DicObjectDic
 
-	// ObjectDic is the node object dictionary
-	ObjectDic *dic.ObjectDic
+	SDOClient *SDOClient
+	PDONode   *PDONode
+	NMTMaster *NMTMaster
+}
+
+func NewNode(id int, network *Network, objectDic *DicObjectDic) *Node {
+	node := &Node{
+		ID:        id,
+		Network:   network,
+		ObjectDic: objectDic,
+	}
+
+	return node
 }
 
 // SetNetwork set node.Network to the desired network
@@ -22,6 +29,16 @@ func (node *Node) SetNetwork(network *Network) {
 }
 
 // SetObjectDic set node.ObjectDic to the desired ObjectDic
-func (node *Node) SetObjectDic(objectDic *dic.ObjectDic) {
+func (node *Node) SetObjectDic(objectDic *DicObjectDic) {
 	node.ObjectDic = objectDic
+}
+
+// Init create sdo clients, pdo nodes, nmt master
+func (node *Node) Init() {
+	node.SDOClient = NewSDOClient(node)
+	node.PDONode = NewPDONode(node)
+	node.NMTMaster = NewNMTMaster(node.ID, node.Network)
+
+	// @TODO: list for NMTMaster
+	// @TODO: implement EMCY
 }

@@ -1,13 +1,13 @@
-package dic
+package canopen
 
 import (
 	"github.com/angelodlfrtr/go-canopen/utils"
 )
 
 const (
-	Var byte = 0x07
-	Arr byte = 0x08
-	Rec byte = 0x09
+	DicVar byte = 0x07
+	DicArr byte = 0x08
+	DicRec byte = 0x09
 )
 
 const (
@@ -80,6 +80,14 @@ func IsNumberType(t byte) bool {
 		Integer64,
 		Real32,
 		Real64,
+	}, t)
+}
+
+func IsStringType(t byte) bool {
+	return utils.ContainsByte([]byte{
+		VisibleString,
+		OctetString,
+		UnicodeString,
 	}, t)
 }
 

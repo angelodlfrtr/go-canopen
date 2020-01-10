@@ -1,4 +1,4 @@
-package eds
+package canopen
 
 import (
 	"io/ioutil"
@@ -1956,7 +1956,7 @@ PDOMapping=1
 ObjFlags=0x0
 `
 
-func TestParse(t *testing.T) {
+func TestDicEDSParseFile(t *testing.T) {
 	testFile := ""
 
 	if a := os.Getenv("CAN_TEST_EDS"); len(a) > 0 {
@@ -1985,7 +1985,7 @@ func TestParse(t *testing.T) {
 	}
 
 	// Parse file
-	dic, err := Parse(testFile)
+	dic, err := DicEDSParseFile(testFile)
 
 	if err != nil {
 		t.Fatal(err)

@@ -1,15 +1,29 @@
 package canopen
 
 import (
+	"errors"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/angelodlfrtr/go-can"
 	"github.com/angelodlfrtr/go-can/frame"
-	"github.com/angelodlfrtr/go-canopen/dic"
 	"github.com/angelodlfrtr/go-canopen/utils"
+	"github.com/google/uuid"
 )
+
+type networkFramesChanFilterFunc *(func(*frame.Frame) bool)
+
+// FrameChan contain a Chan, and ID and a Filter function
+// Each FrameChan can have a filter function which return a boolean,
+// and for each frame, the filter func is called. If func return true, the frame is returned,
+// else dont send frame.
+type NetworkFramesChan struct {
+	ID     string
+	Chan   chan *frame.Frame
+	Filter networkFramesChanFilterFunc
+}
 
 // Network represent the global nodes network
 type Network struct {
@@ -18,16 +32,98 @@ type Network struct {
 
 	// Nodes contain the network nodes
 	Nodes map[int]*Node
+
+	// FramesChans contains a list of chan when is sent each frames from network bus.
+	FramesChans []*NetworkFramesChan
+
+	// NMTMaster contain nmt control struct
+	NMTMaster *NMTMaster
+
+	// mutex for FramesChans access
+	mutex sync.Mutex
+
+	// listening is network reading datas on can bus
+	listening bool
+
+	BusReadErrChan chan error
 }
 
 // NewNetwork a new Network with given bus
-func NewNetwork(bus can.Bus) *Network {
-	return &Network{Bus: bus}
+func NewNetwork(bus can.Bus) (*Network, error) {
+	// Create network
+	netw := &Network{Bus: bus}
+
+	// Set nmt and listen for nmt hearbeat messages
+	netw.NMTMaster = NewNMTMaster(0, netw)
+
+	return netw, nil
 }
 
-// Listen for canopen message on bus
-func (network *Network) Listen() {
-	// @TODO
+// Run listen handlers for frames on bus
+func (network *Network) Run() error {
+	// @TODO: check bus is opened
+
+	// Start network nmt master hearbeat listener
+	if err := network.NMTMaster.ListenForHeartbeat(); err != nil {
+		return err
+	}
+
+	// Set as listening
+	network.listening = true
+
+	go func() {
+		for {
+			if !network.listening {
+				// Stop loop and goroutine
+				break
+			}
+
+			// Read frame
+			frm := &frame.Frame{}
+			ok, err := network.Bus.Read(frm)
+
+			if err != nil {
+				network.BusReadErrChan <- err
+				continue
+			}
+
+			// If not data continue
+			if !ok {
+				continue
+			}
+
+			// Send frame to frames chans
+			for _, ch := range network.FramesChans {
+				if ch.Filter != nil {
+					if (*ch.Filter)(frm) {
+						ch.Chan <- frm
+					}
+				} else {
+					ch.Chan <- frm
+				}
+			}
+		}
+	}()
+
+	return nil
+}
+
+// Stop handlers for frames on bus
+func (network *Network) Stop() error {
+	if !network.listening {
+		return nil
+	}
+
+	// Start network nmt master hearbeat listener
+	if err := network.NMTMaster.UnlistenForHeartbeat(); err != nil {
+		return err
+	}
+
+	network.listening = false
+
+	// @TODO: stop all nmtmasters, and all chan listeners
+
+	return nil
 }
 
 func (network *Network) Send(arbID uint32, data []byte) error {
@@ -42,7 +138,7 @@ func (network *Network) Send(arbID uint32, data []byte) error {
 
 	// Copy data to 8 byte array
 	var arr [8]byte
-	copy(arr[:], data[:8])
+	copy(arr[:], data[:int(frm.DLC)])
 
 	frm.Data = arr
 
@@ -50,22 +146,34 @@ func (network *Network) Send(arbID uint32, data []byte) error {
 }
 
 // AddNode add a node to the network
-func (network *Network) AddNode(n Node, objectDic *dic.ObjectDic, uploadEDS bool) *Node {
+func (network *Network) AddNode(node *Node, objectDic *DicObjectDic, uploadEDS bool) *Node {
 	if uploadEDS {
 		// @TODO: download definition from node if true
-		log.Fatal("Uploading EDS not supported for now")
+		log.Fatal("uploading EDS not supported for now")
+	}
+
+	if node == nil {
+		log.Fatal("Cannot use nil Node")
 	}
 
 	// Set node network
-	n.SetNetwork(network)
+	node.SetNetwork(network)
 
 	// Set ObjectDic
-	n.SetObjectDic(objectDic)
+	node.SetObjectDic(objectDic)
+
+	// Init node
+	node.Init()
+
+	// Initialize Nodes
+	if network.Nodes == nil {
+		network.Nodes = map[int]*Node{}
+	}
 
 	// Append node to network
-	network.Nodes[n.ID] = &n
+	network.Nodes[node.ID] = node
 
-	return &n
+	return node
 }
 
 // GetNode by node id. Return error if node dont exist in network.Nodes
@@ -77,10 +185,62 @@ func (network *Network) GetNode(nodeID int) (*Node, error) {
 	return nil, fmt.Errorf("no node with id %d", nodeID)
 }
 
+// AcquireFramesChan create a new FrameChan
+func (network *Network) AcquireFramesChan(filterFunc networkFramesChanFilterFunc) *NetworkFramesChan {
+	network.mutex.Lock()
+	defer network.mutex.Unlock()
+
+	// Create frame chan
+	chanID := uuid.Must(uuid.NewRandom()).String()
+	frameChan := &NetworkFramesChan{
+		ID:     chanID,
+		Filter: filterFunc,
+		Chan:   make(chan *frame.Frame),
+	}
+
+	// Append network.FramesChans
+	network.FramesChans = append(network.FramesChans, frameChan)
+
+	return frameChan
+}
+
+// ReleaseFramesChan release (close) a FrameChan
+func (network *Network) ReleaseFramesChan(id string) error {
+	network.mutex.Lock()
+	defer network.mutex.Unlock()
+
+	var framesChan *NetworkFramesChan
+	var framesChanIndex *int
+
+	for idx, fc := range network.FramesChans {
+		if fc.ID == id {
+			framesChan = fc
+			idxx := idx
+			framesChanIndex = &idxx
+			break
+		}
+	}
+
+	if framesChanIndex == nil {
+		return errors.New("no FrameChan found with specified ID")
+	}
+
+	// Close chan
+	close(framesChan.Chan)
+
+	// Remove frameChan from network.FramesChans
+	network.FramesChans = append(
+		network.FramesChans[:*framesChanIndex],
+		network.FramesChans[*framesChanIndex+1:]...,
+	)
+
+	return nil
+}
+
 // Search send data to network and wait for nodes response
 func (network *Network) Search(limit int, timeout time.Duration) ([]*Node, error) {
 	// Nodes found
-	var nodes []*Node
+	nodes := make([]*Node, 0, limit)
 
 	reqData := []byte{0x40, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00}
 
@@ -129,7 +289,8 @@ func (network *Network) Search(limit int, timeout time.Duration) ([]*Node, error
 							continue
 						}
 
-						nodes = append(nodes, &Node{ID: nodeID})
+						nNode := NewNode(nodeID, nil, nil)
+						nodes = append(nodes, nNode)
 					}
 				}
 			}
