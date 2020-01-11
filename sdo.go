@@ -2,7 +2,6 @@ package canopen
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/angelodlfrtr/go-can/frame"
@@ -53,7 +52,7 @@ func (sdoClient *SDOClient) Send(
 ) (*frame.Frame, error) {
 	// Set default timeout
 	if timeout == nil {
-		dtm := time.Duration(1) * time.Second
+		dtm := time.Duration(100) * time.Millisecond
 		timeout = &dtm
 	}
 
@@ -73,21 +72,16 @@ func (sdoClient *SDOClient) Send(
 		return nil, nil
 	}
 
-	// Wait for response frame
 	var frm *frame.Frame
-	start := time.Now()
+	timer := time.NewTicker(*timeout)
+	defer timer.Stop()
 
-	for {
-		select {
-		case fr := <-framesChan.Chan:
-			frm = fr
-			break
-		default:
-			if time.Since(start) > *timeout {
-				fmt.Println(time.Since(start) > *timeout)
-				break
-			}
-		}
+	select {
+	case <-timer.C:
+		break
+	case fr := <-framesChan.Chan:
+		frm = fr
+		break
 	}
 
 	// Release data chan
@@ -96,7 +90,7 @@ func (sdoClient *SDOClient) Send(
 	}
 
 	if frm == nil {
-		return nil, errors.New("timeout exceeded")
+		return nil, errors.New("timeout execeded")
 	}
 
 	return frm, nil

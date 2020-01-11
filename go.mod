@@ -3,9 +3,8 @@ module github.com/angelodlfrtr/go-canopen
 go 1.12
 
 require (
-	github.com/angelodlfrtr/go-can v0.0.0-20200109103909-24903d17e604
+	github.com/angelodlfrtr/go-can v0.0.0-20200111165032-3fec052e946d
 	github.com/google/uuid v1.1.1
-	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
-	github.com/stretchr/testify v1.4.0 // indirect
-	gopkg.in/ini.v1 v1.46.0
+	github.com/smartystreets/goconvey v1.6.4 // indirect
+	gopkg.in/ini.v1 v1.51.1
 )

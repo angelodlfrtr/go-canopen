@@ -26,8 +26,9 @@ func NewSDOReader(sdoClient *SDOClient, index uint16, subIndex uint8) *SDOReader
 	}
 }
 
+// buildRequestSegmentUploadBuf working
 func (reader *SDOReader) buildRequestUploadBuf() []byte {
-	buf := make([]byte, 4)
+	buf := make([]byte, 8) // 8 len is important
 
 	buf[0] = SDORequestUpload
 	binary.LittleEndian.PutUint16(buf[1:], reader.Index)
@@ -49,14 +50,6 @@ func (reader *SDOReader) buildRequestSegmentUploadBuf() []byte {
 // RequestUpload returns data if EXPEDITED, else nil
 func (reader *SDOReader) RequestUpload() ([]byte, error) {
 	expectFunc := func(frm *frame.Frame) bool {
-		if frm == nil {
-			return false
-		}
-
-		if frm.ArbitrationID != reader.SDOClient.TXCobID {
-			return false
-		}
-
 		resCommand := frm.Data[0]
 		resIndex := binary.LittleEndian.Uint16(frm.Data[1:])
 		resSubindex := frm.Data[3]
@@ -85,7 +78,7 @@ func (reader *SDOReader) RequestUpload() ([]byte, error) {
 	resCommand := frm.Data[0]
 	resData := frm.Data[4:8]
 
-	expData := make([]byte, 0, 8)
+	var expData []byte
 
 	// If data is already in response (max 4 bytes)
 	if (resCommand & SDOExpedited) != 0 {

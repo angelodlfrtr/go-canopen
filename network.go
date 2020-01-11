@@ -92,6 +92,11 @@ func (network *Network) Run() error {
 				continue
 			}
 
+			fmt.Println("Read")
+			fmt.Println(frm)
+			fmt.Println(fmt.Sprintf("%x", frm.Data))
+			fmt.Println("")
+
 			// Send frame to frames chans
 			for _, ch := range network.FramesChans {
 				if ch.Filter != nil {
@@ -126,6 +131,7 @@ func (network *Network) Stop() error {
 	return nil
 }
 
+// Send a frame on network
 func (network *Network) Send(arbID uint32, data []byte) error {
 	frm := &frame.Frame{
 		ArbitrationID: arbID,
@@ -138,10 +144,17 @@ func (network *Network) Send(arbID uint32, data []byte) error {
 
 	// Copy data to 8 byte array
 	var arr [8]byte
-	copy(arr[:], data[:int(frm.DLC)])
+	copy(arr[0:], data[:int(frm.DLC)])
 
+	// Set data in frame
 	frm.Data = arr
 
+	fmt.Println("Send")
+	fmt.Println(frm)
+	fmt.Println(fmt.Sprintf("%x", frm.Data))
+	fmt.Println("")
+
+	// Write frame to serial port
 	return network.Bus.Write(frm)
 }
 
