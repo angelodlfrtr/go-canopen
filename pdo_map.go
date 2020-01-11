@@ -99,7 +99,7 @@ func (m *PDOMap) Read() error {
 		return err
 	}
 
-	cobID := int(*m.ComRecord.FindIndex(1).GetIntVal())
+	cobID := int(*m.ComRecord.FindIndex(1).GetUintVal())
 	m.CobID = cobID
 
 	// Is enabled
@@ -113,8 +113,8 @@ func (m *PDOMap) Read() error {
 		return err
 	}
 
-	transType := *m.ComRecord.FindIndex(2).GetByteVal()
-	m.TransType = transType
+	transType := *m.ComRecord.FindIndex(2).GetUintVal()
+	m.TransType = byte(transType)
 
 	// Get EventTimer
 	if transType > 254 {
@@ -137,6 +137,7 @@ func (m *PDOMap) Read() error {
 	if err := m.MapArray.FindIndex(0).Read(); err != nil {
 		return err
 	}
+
 	nofEntries := m.MapArray.FindIndex(0).GetData()
 
 	for i := range nofEntries {
@@ -144,7 +145,8 @@ func (m *PDOMap) Read() error {
 		if err := m.MapArray.FindIndex(ii).Read(); err != nil {
 			return err
 		}
-		val := *m.MapArray.FindIndex(ii).GetIntVal()
+
+		val := *m.MapArray.FindIndex(ii).GetUintVal()
 
 		index := uint16(val >> 16)
 		subindex := uint16((val >> 8) & 0xFF)

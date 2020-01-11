@@ -159,7 +159,7 @@ func TestAll(t *testing.T) {
 
 	t.Log("Handle node ID", node.ID)
 
-	time.Sleep(10 * time.Second)
+	time.Sleep(1 * time.Second)
 
 	// Read node PDO
 	if err := node.PDONode.Read(); err != nil {
