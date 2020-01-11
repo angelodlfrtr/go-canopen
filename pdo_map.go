@@ -9,6 +9,7 @@ const (
 	MapRTRNotAllowed int = 1 << 30
 )
 
+// PDOMap
 type PDOMap struct {
 	PDONode   *PDONode
 	ComRecord DicObject
@@ -32,6 +33,7 @@ type PDOMap struct {
 	IsReceived bool
 }
 
+// NewPDOMap return a PDOMap initialized
 func NewPDOMap(pdoNode *PDONode, comRecord, mapArray DicObject) *PDOMap {
 	pdoMap := &PDOMap{
 		PDONode:    pdoNode,
@@ -43,7 +45,7 @@ func NewPDOMap(pdoNode *PDONode, comRecord, mapArray DicObject) *PDOMap {
 	return pdoMap
 }
 
-// Find a map by index
+// FindIndex find a object by index
 func (m *PDOMap) FindIndex(idx int) DicObject {
 	if ma, ok := m.Map[idx]; ok {
 		return ma
@@ -52,7 +54,7 @@ func (m *PDOMap) FindIndex(idx int) DicObject {
 	return nil
 }
 
-// Find a map by name
+// FindName find a object by name
 func (m *PDOMap) FindByName(name string) DicObject {
 	var r DicObject
 
@@ -87,12 +89,13 @@ func (m *PDOMap) SetData(data []byte) {
 	m.Data = data
 }
 
+// Listen @TODO: listen for changes on map
 func (m *PDOMap) Listen() error {
 	// @TODO
 	return nil
 }
 
-// Read a map
+// Read map values
 func (m *PDOMap) Read() error {
 	// Get COB ID
 	if err := m.ComRecord.FindIndex(1).Read(); err != nil {

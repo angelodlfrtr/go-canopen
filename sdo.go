@@ -44,6 +44,16 @@ func (sdoClient *SDOClient) SendRequest(req []byte) error {
 	return sdoClient.Node.Network.Send(sdoClient.RXCobID, req)
 }
 
+// FindName find an sdo object from object dictionary by name
+func (sdoClient *SDOClient) FindName(name string) DicObject {
+	if ob := sdoClient.Node.ObjectDic.FindName(name); ob != nil {
+		ob.SetSDO(sdoClient)
+		return ob
+	}
+
+	return nil
+}
+
 // Send message and optionaly wait for response
 func (sdoClient *SDOClient) Send(
 	req []byte,
@@ -100,4 +110,10 @@ func (sdoClient *SDOClient) Send(
 func (sdoClient *SDOClient) Read(index uint16, subIndex uint8) ([]byte, error) {
 	reader := NewSDOReader(sdoClient, index, subIndex)
 	return reader.ReadAll()
+}
+
+// Write sdo
+func (sdoClient *SDOClient) Write(index uint16, subIndex uint8, forceSegment bool, data []byte) error {
+	writer := NewSDOWriter(sdoClient, index, subIndex, forceSegment)
+	return writer.Write(data)
 }

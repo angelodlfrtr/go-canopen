@@ -131,6 +131,7 @@ func (variable *DicVariable) AddBitDefinition(name string, bits []byte) {
 	variable.BitDefinitions[name] = bits
 }
 
+// Read variable value using SDO
 func (variable *DicVariable) Read() error {
 	if variable.SDOClient == nil {
 		return errors.New("SDOClient required")
@@ -146,13 +147,19 @@ func (variable *DicVariable) Read() error {
 	return nil
 }
 
-// func (variable *DicVariable) Write(data []byte) error {
-// if variable.SDOClient == nil {
-// return errors.New("SDOClient required")
-// }
+// Write variable value using SDO
+func (variable *DicVariable) Write(data []byte) error {
+	if variable.SDOClient == nil {
+		return errors.New("SDOClient required")
+	}
 
-// return variable.SDOClient.Write(variable.Index, variable.SubIndex, variable.IsDomainDataType())
-// }
+	return variable.SDOClient.Write(
+		variable.Index,
+		variable.SubIndex,
+		variable.IsDomainDataType(),
+		variable.Data,
+	)
+}
 
 func (variable *DicVariable) IsDomainDataType() bool {
 	return variable.DataType == Domain

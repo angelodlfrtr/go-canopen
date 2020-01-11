@@ -165,6 +165,4 @@ func TestAll(t *testing.T) {
 	if err := node.PDONode.Read(); err != nil {
 		t.Fatal(err)
 	}
-
-	t.Log(node)
 }
