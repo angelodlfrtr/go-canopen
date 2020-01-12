@@ -169,7 +169,7 @@ func (network *Network) AddNode(node *Node, objectDic *DicObjectDic, uploadEDS b
 
 	// Clone object dic
 	clonedObjectDic := &DicObjectDic{}
-	if err := copier.Copy(&clonedObjectDic, objectDic); err != nil {
+	if err := copier.Copy(clonedObjectDic, objectDic); err != nil {
 		panic(err)
 	}
 

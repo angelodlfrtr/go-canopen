@@ -161,16 +161,15 @@ func TestAll(t *testing.T) {
 		t.Fatal("No nodes found")
 	}
 
-	// Use first node
-	node := nodes[0]
-	network.AddNode(node, dic, false)
+	for _, node := range nodes {
+		network.AddNode(node, dic, false)
+		t.Log("Handle node ID", node.ID)
 
-	t.Log("Handle node ID", node.ID)
+		// time.Sleep(1 * time.Second)
 
-	time.Sleep(1 * time.Second)
-
-	// Read node PDO
-	if err := node.PDONode.Read(); err != nil {
-		t.Fatal(err)
+		// Read node PDO
+		if err := node.PDONode.Read(); err != nil {
+			t.Fatal(err)
+		}
 	}
 }
