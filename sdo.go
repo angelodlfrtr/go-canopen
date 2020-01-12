@@ -89,7 +89,7 @@ func (sdoClient *SDOClient) Send(
 	select {
 	case <-timer.C:
 		break
-	case fr := <-framesChan.Chan:
+	case fr := <-framesChan.C:
 		frm = fr
 		break
 	}

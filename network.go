@@ -22,7 +22,7 @@ type networkFramesChanFilterFunc *(func(*frame.Frame) bool)
 // else dont send frame.
 type NetworkFramesChan struct {
 	ID     string
-	Chan   chan *frame.Frame
+	C      chan *frame.Frame
 	Filter networkFramesChanFilterFunc
 }
 
@@ -101,10 +101,10 @@ func (network *Network) Run() error {
 			for _, ch := range network.FramesChans {
 				if ch.Filter != nil {
 					if (*ch.Filter)(frm) {
-						ch.Chan <- frm
+						ch.C <- frm
 					}
 				} else {
-					ch.Chan <- frm
+					ch.C <- frm
 				}
 			}
 		}
@@ -209,7 +209,7 @@ func (network *Network) AcquireFramesChan(filterFunc networkFramesChanFilterFunc
 	frameChan := &NetworkFramesChan{
 		ID:     chanID,
 		Filter: filterFunc,
-		Chan:   make(chan *frame.Frame),
+		C:      make(chan *frame.Frame),
 	}
 
 	// Append network.FramesChans
@@ -240,7 +240,7 @@ func (network *Network) ReleaseFramesChan(id string) error {
 	}
 
 	// Close chan
-	close(framesChan.Chan)
+	close(framesChan.C)
 
 	// Remove frameChan from network.FramesChans
 	network.FramesChans = append(
@@ -280,7 +280,7 @@ func (network *Network) Search(limit int, timeout time.Duration) ([]*Node, error
 			}
 
 			return nodes, nil
-		case frm := <-framesChan.Chan:
+		case frm := <-framesChan.C:
 			service := frm.ArbitrationID & 0x780
 			nodeID := int(frm.ArbitrationID & 0x7F)
 

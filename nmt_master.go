@@ -105,7 +105,7 @@ func (master *NMTMaster) ListenForHeartbeat() error {
 	// Listen for messages
 	go func() {
 		for {
-			frm, ok := <-framesChan.Chan
+			frm, ok := <-framesChan.C
 
 			if !ok {
 				// Stop loop (and goroutine)

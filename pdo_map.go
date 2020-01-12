@@ -1,7 +1,12 @@
 package canopen
 
 import (
+	"errors"
+	"reflect"
 	"time"
+
+	"github.com/angelodlfrtr/go-can/frame"
+	"github.com/google/uuid"
 )
 
 const (
@@ -9,12 +14,18 @@ const (
 	MapRTRNotAllowed int = 1 << 30
 )
 
-// PDOMap
+type PDOMapChangeChan struct {
+	ID string
+	C  chan []byte
+}
+
+// PDOMap @TODO : mutex
 type PDOMap struct {
 	PDONode   *PDONode
 	ComRecord DicObject
 	MapArray  DicObject
 
+	Listening  bool
 	Enabled    bool
 	CobID      int
 	RTRAllowed bool
@@ -31,6 +42,8 @@ type PDOMap struct {
 	Period    *time.Duration
 
 	IsReceived bool
+
+	ChangeChans []*PDOMapChangeChan
 }
 
 // NewPDOMap return a PDOMap initialized
@@ -89,9 +102,104 @@ func (m *PDOMap) SetData(data []byte) {
 	m.Data = data
 }
 
-// Listen @TODO: listen for changes on map
+// Listen for changes on map from network
 func (m *PDOMap) Listen() error {
-	// @TODO
+	if m.CobID == 0 {
+		return errors.New("call Read() on this map before listening")
+	}
+
+	if m.Listening {
+		return nil
+	}
+
+	m.Listening = true
+
+	now := time.Now()
+	m.Timestamp = &now
+
+	filterFunc := func(frm *frame.Frame) bool {
+		return frm.ArbitrationID == uint32(m.CobID)
+	}
+
+	framesChan := m.PDONode.Network.AcquireFramesChan(&filterFunc)
+
+	go func() {
+		for {
+			// Stop routine if listening == false
+			if !m.Listening {
+				return
+			}
+
+			select {
+			case frm := <-framesChan.C:
+				m.IsReceived = true
+				m.SetData(frm.GetData())
+				// @TODO m.Period = frm.Timestamp - m.Timestamp;
+				now := time.Now()
+				m.Timestamp = &now
+
+				// If data changed
+				if !reflect.DeepEqual(m.OldData, m.Data) {
+					for _, changeChan := range m.ChangeChans {
+						changeChan.C <- m.Data
+					}
+				}
+			default:
+				continue
+			}
+		}
+	}()
+
+	return nil
+}
+
+// Unlisten for changes on map from network
+func (m *PDOMap) Unlisten() {
+	m.Listening = false
+}
+
+// AcquireChangesChan create a new PDOMapChangeChan
+func (m *PDOMap) AcquireChangesChan() *PDOMapChangeChan {
+	// Create frame chan
+	chanID := uuid.Must(uuid.NewRandom()).String()
+	changesChan := &PDOMapChangeChan{
+		ID: chanID,
+		C:  make(chan []byte),
+	}
+
+	// Append m.ChangeChans
+	m.ChangeChans = append(m.ChangeChans, changesChan)
+
+	return changesChan
+}
+
+// ReleaseChangesChan release (close) a PDOMapChangeChan
+func (m *PDOMap) ReleaseChangesChan(id string) error {
+	var changesChan *PDOMapChangeChan
+	var changesChanIndex *int
+
+	for idx, fc := range m.ChangeChans {
+		if fc.ID == id {
+			changesChan = fc
+			idxx := idx
+			changesChanIndex = &idxx
+			break
+		}
+	}
+
+	if changesChanIndex == nil {
+		return errors.New("no PDOMapChangeChan found with specified ID")
+	}
+
+	// Close chan
+	close(changesChan.C)
+
+	// Remove frameChan from network.FramesChans
+	m.ChangeChans = append(
+		m.ChangeChans[:*changesChanIndex],
+		m.ChangeChans[*changesChanIndex+1:]...,
+	)
+
 	return nil
 }
 
@@ -169,6 +277,8 @@ func (m *PDOMap) Read() error {
 		if !dicVar.IsDicVariable() {
 			dicVar = dicVar.FindIndex(subindex)
 		}
+
+		// @TODO : read variable ?
 
 		dicVar.SetOffset(offset)
 		// @TODO: check working
