@@ -65,6 +65,10 @@ func (variable *DicVariable) IsDicVariable() bool {
 	return true
 }
 
+func (variable *DicVariable) GetDataType() byte {
+	return variable.DataType
+}
+
 func (variable *DicVariable) GetDataLen() int {
 	l := 1
 
@@ -161,12 +165,21 @@ func (variable *DicVariable) Write(data []byte) error {
 	)
 }
 
+// Save variable.Data using SDO
+func (variable *DicVariable) Save() error {
+	return variable.Write(variable.Data)
+}
+
 func (variable *DicVariable) IsDomainDataType() bool {
 	return variable.DataType == Domain
 }
 
 func (variable *DicVariable) GetData() []byte {
 	return variable.Data
+}
+
+func (variable *DicVariable) SetData(data []byte) {
+	variable.Data = data
 }
 
 func (variable *DicVariable) GetStringVal() *string {
@@ -271,6 +284,8 @@ func (variable *DicVariable) GetBoolVal() *bool {
 
 	v := false
 
+	// @TODO
+
 	return &v
 }
 
@@ -282,4 +297,69 @@ func (variable *DicVariable) GetByteVal() *byte {
 	}
 
 	return &v
+}
+
+func (variable *DicVariable) SetStringVal(a string) {
+	// @TODO
+}
+
+func (variable *DicVariable) SetFloatVal(a float64) {
+	// @TODO
+}
+
+func (variable *DicVariable) SetUintVal(a uint64) {
+	if !IsUnsignedType(variable.DataType) {
+		return
+	}
+
+	if variable.DataType == Unsigned8 {
+		variable.Data[0] = byte(a)
+	}
+
+	if variable.DataType == Unsigned16 {
+		binary.LittleEndian.PutUint16(variable.Data, uint16(a))
+	}
+
+	if variable.DataType == Unsigned32 {
+		binary.LittleEndian.PutUint32(variable.Data, uint32(a))
+	}
+
+	if variable.DataType == Unsigned64 {
+		binary.LittleEndian.PutUint64(variable.Data, uint64(a))
+	}
+}
+
+func (variable *DicVariable) SetIntVal(a int64) {
+	if !IsSignedType(variable.DataType) {
+		return
+	}
+
+	if variable.DataType == Integer8 {
+		variable.Data[0] = byte(a)
+	}
+
+	// @TODO: https://groups.google.com/forum/#!topic/golang-nuts/f1QQkP19G9Q
+	if variable.DataType == Integer16 {
+		binary.LittleEndian.PutUint16(variable.Data, uint16(a))
+	}
+
+	if variable.DataType == Integer32 {
+		binary.LittleEndian.PutUint32(variable.Data, uint32(a))
+	}
+
+	if variable.DataType == Integer64 {
+		binary.LittleEndian.PutUint64(variable.Data, uint64(a))
+	}
+}
+
+func (variable *DicVariable) SetBoolVal(a bool) {
+	if variable.DataType == Boolean {
+		// @TODO
+	}
+}
+
+func (variable *DicVariable) SetByteVal(a byte) {
+	if variable.DataType == Unsigned8 {
+		variable.Data[0] = a
+	}
 }

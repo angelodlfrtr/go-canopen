@@ -10,9 +10,11 @@ import (
 )
 
 // Parse EDS File
-func DicEDSParseFile(filePath string) (*DicObjectDic, error) {
+// If in is string, it must be a path to a file
+// else if in must be eds data as []byte
+func DicEDSParse(in interface{}) (*DicObjectDic, error) {
 	// Load ini file
-	iniData, err := ini.Load(filePath)
+	iniData, err := ini.Load(in)
 	if err != nil {
 		return nil, nil
 	}

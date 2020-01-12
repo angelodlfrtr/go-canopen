@@ -131,7 +131,7 @@ func TestAll(t *testing.T) {
 	}
 
 	// Parse eds file
-	dic, err := DicEDSParseFile(objectDicFilePath)
+	dic, err := DicEDSParse(objectDicFilePath)
 	if err != nil {
 		t.Fatal(err)
 	}

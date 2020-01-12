@@ -52,19 +52,28 @@ func (array *DicArray) FindName(name string) DicObject {
 	return nil
 }
 
-func (array *DicArray) SetSDO(sdo *SDOClient) {
-	array.SDOClient = sdo
-}
-
-func (array *DicArray) IsDicVariable() bool   { return false }
+func (array *DicArray) GetDataType() byte     { return 0x00 }
 func (array *DicArray) GetDataLen() int       { return 0 }
 func (array *DicArray) SetSize(s int)         {}
 func (array *DicArray) SetOffset(s int)       {}
 func (array *DicArray) Read() error           { return nil }
+func (array *DicArray) Save() error           { return nil }
 func (array *DicArray) GetData() []byte       { return nil }
+func (array *DicArray) SetData(data []byte)   {}
 func (array *DicArray) GetStringVal() *string { return nil }
 func (array *DicArray) GetFloatVal() *float64 { return nil }
 func (array *DicArray) GetUintVal() *uint64   { return nil }
 func (array *DicArray) GetIntVal() *int64     { return nil }
 func (array *DicArray) GetBoolVal() *bool     { return nil }
 func (array *DicArray) GetByteVal() *byte     { return nil }
+func (array *DicArray) SetStringVal(a string) {}
+func (array *DicArray) SetFloatVal(a float64) {}
+func (array *DicArray) SetUintVal(a uint64)   {}
+func (array *DicArray) SetIntVal(a int64)     {}
+func (array *DicArray) SetBoolVal(a bool)     {}
+func (array *DicArray) SetByteVal(a byte)     {}
+func (array *DicArray) IsDicVariable() bool   { return false }
+
+func (array *DicArray) SetSDO(sdo *SDOClient) {
+	array.SDOClient = sdo
+}

@@ -57,20 +57,29 @@ func (record *DicRecord) FindName(name string) DicObject {
 	return nil
 }
 
-// SetSDO to DicRecord
-func (record *DicRecord) SetSDO(sdo *SDOClient) {
-	record.SDOClient = sdo
-}
-
-func (record *DicRecord) IsDicVariable() bool   { return false }
+func (record *DicRecord) GetDataType() byte     { return 0x00 }
 func (record *DicRecord) GetDataLen() int       { return 0 }
 func (record *DicRecord) SetSize(s int)         {}
 func (record *DicRecord) SetOffset(s int)       {}
 func (record *DicRecord) Read() error           { return nil }
+func (record *DicRecord) Save() error           { return nil }
 func (record *DicRecord) GetData() []byte       { return nil }
+func (record *DicRecord) SetData(data []byte)   {}
 func (record *DicRecord) GetStringVal() *string { return nil }
 func (record *DicRecord) GetFloatVal() *float64 { return nil }
 func (record *DicRecord) GetUintVal() *uint64   { return nil }
 func (record *DicRecord) GetIntVal() *int64     { return nil }
 func (record *DicRecord) GetBoolVal() *bool     { return nil }
 func (record *DicRecord) GetByteVal() *byte     { return nil }
+func (record *DicRecord) SetStringVal(a string) {}
+func (record *DicRecord) SetFloatVal(a float64) {}
+func (record *DicRecord) SetUintVal(a uint64)   {}
+func (record *DicRecord) SetIntVal(a int64)     {}
+func (record *DicRecord) SetBoolVal(a bool)     {}
+func (record *DicRecord) SetByteVal(a byte)     {}
+func (record *DicRecord) IsDicVariable() bool   { return false }
+
+// SetSDO to DicRecord
+func (record *DicRecord) SetSDO(sdo *SDOClient) {
+	record.SDOClient = sdo
+}
