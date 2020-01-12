@@ -30,7 +30,16 @@ func getNetwork() (*Network, error) {
 		return nil, err
 	}
 
-	return NewNetwork(bus)
+	netw, err := NewNetwork(bus)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := netw.Run(); err != nil {
+		return nil, err
+	}
+
+	return netw, nil
 }
 
 func searchNodes() ([]*Node, error) {
@@ -124,6 +133,10 @@ func TestAll(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	if err := network.Run(); err != nil {
+		t.Fatal(err)
+	}
+
 	// Load object dic
 	objectDicFilePath := os.Getenv("CAN_TEST_EDS")
 	if len(objectDicFilePath) == 0 {
@@ -151,11 +164,6 @@ func TestAll(t *testing.T) {
 	// Use first node
 	node := nodes[0]
 	network.AddNode(node, dic, false)
-
-	// Start network
-	if err := network.Run(); err != nil {
-		t.Fatal(err)
-	}
 
 	t.Log("Handle node ID", node.ID)
 

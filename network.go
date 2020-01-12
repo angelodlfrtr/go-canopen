@@ -62,6 +62,10 @@ func NewNetwork(bus can.Bus) (*Network, error) {
 
 // Run listen handlers for frames on bus
 func (network *Network) Run() error {
+	if network.listening {
+		return nil
+	}
+
 	// @TODO: check bus is opened
 
 	// Start network nmt master hearbeat listener
@@ -264,22 +268,19 @@ func (network *Network) Search(limit int, timeout time.Duration) ([]*Node, error
 	// Canopen service
 	services := []uint32{0x700, 0x580, 0x180, 0x280, 0x380, 0x480, 0x80}
 
-	// Handle pongs
-	start := time.Now()
+	framesChan := network.AcquireFramesChan(nil)
+	timer := time.NewTicker(timeout)
+	defer timer.Stop()
 
 	for {
-		if time.Since(start) > timeout {
-			break
-		}
+		select {
+		case <-timer.C:
+			if err := network.ReleaseFramesChan(framesChan.ID); err != nil {
+				return nil, err
+			}
 
-		frm := &frame.Frame{}
-		ok, err := network.Bus.Read(frm)
-
-		if err != nil {
-			return nil, err
-		}
-
-		if ok {
+			return nodes, nil
+		case frm := <-framesChan.Chan:
 			service := frm.ArbitrationID & 0x780
 			nodeID := int(frm.ArbitrationID & 0x7F)
 
@@ -306,6 +307,4 @@ func (network *Network) Search(limit int, timeout time.Duration) ([]*Node, error
 			}
 		}
 	}
-
-	return nodes, nil
 }
