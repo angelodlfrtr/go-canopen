@@ -78,7 +78,9 @@ func (network *Network) Run() error {
 
 	go func() {
 		for {
+			network.Lock()
 			if !network.listening {
+				network.Unlock()
 				// Stop loop and goroutine
 				break
 			}
@@ -89,11 +91,13 @@ func (network *Network) Run() error {
 
 			if err != nil {
 				network.BusReadErrChan <- err
+				network.Unlock()
 				continue
 			}
 
 			// If not data continue
 			if !ok {
+				network.Unlock()
 				continue
 			}
 
@@ -107,6 +111,8 @@ func (network *Network) Run() error {
 					ch.C <- frm
 				}
 			}
+
+			network.Unlock()
 		}
 	}()
 
