@@ -246,10 +246,10 @@ func (m *PDOMap) Read() error {
 		return err
 	}
 
-	nofEntries := m.MapArray.FindIndex(0).GetData()
+	nofEntries := int(m.MapArray.FindIndex(0).GetData()[0])
 
-	for i := range nofEntries {
-		ii := uint16(i + 1)
+	for i := 1; i <= (nofEntries + 1); i++ {
+		ii := uint16(i)
 		if err := m.MapArray.FindIndex(ii).Read(); err != nil {
 			return err
 		}
@@ -360,15 +360,16 @@ func (m *PDOMap) RebuildData() {
 	data := make([]byte, m.GetTotalSize()/8)
 
 	for _, dicVar := range m.Map {
-		if len(dicVar.GetData()) == 0 {
+		dicVarData := dicVar.GetData()
+		if len(dicVarData) == 0 {
 			continue
 		}
 
 		dicOffset := dicVar.GetOffset() / 8
 
-		for i := 0; i < len(dicVar.GetData()); i++ {
+		for i := 0; i < len(dicVarData); i++ {
 			offset := i + dicOffset
-			data[offset] = dicVar.GetData()[i]
+			data[offset] = dicVarData[i]
 		}
 	}
 

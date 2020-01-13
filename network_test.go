@@ -166,7 +166,7 @@ func TestAll(t *testing.T) {
 	}
 
 	// node := nodes[0]
-	node, _ := network.GetNode(41)
+	node, _ := network.GetNode(71)
 	t.Log("Handle node ID", node.ID)
 
 	// Read node PDO
@@ -175,19 +175,19 @@ func TestAll(t *testing.T) {
 	}
 
 	// Listen PDO
-	eleMap := node.PDONode.FindName("SomeName")
-	changesChan := eleMap.AcquireChangesChan()
+	// eleMap := node.PDONode.FindName("SomeName")
+	// changesChan := eleMap.AcquireChangesChan()
 
-	// Wait for any change
-	timer := time.NewTicker(10 * time.Second)
+	// // Wait for any change
+	// timer := time.NewTicker(10 * time.Second)
 
-	for {
-		select {
-		case data := <-changesChan.C:
-			t.Log(data)
-		case <-timer.C:
-			t.Log("Done")
-			return
-		}
-	}
+	// for {
+	// select {
+	// case data := <-changesChan.C:
+	// t.Log(data)
+	// case <-timer.C:
+	// t.Log("Done")
+	// return
+	// }
+	// }
 }

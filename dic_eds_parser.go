@@ -57,7 +57,7 @@ func DicEDSParse(in interface{}) (*DicObjectDic, error) {
 			objectType, _ := strconv.ParseUint(sec.Key("ObjectType").String(), 0, 8)
 
 			// Object type == VARIABLE
-			if byte(objectType) == DicVar {
+			if byte(objectType) == DicVar || byte(objectType) == Domain {
 				variable, err := buildVariable(index, 0, name, sec, iniData)
 				if err != nil {
 					return nil, err
@@ -106,9 +106,9 @@ func DicEDSParse(in interface{}) (*DicObjectDic, error) {
 				return nil, err
 			}
 			object.AddMember(variable)
-
-			continue
 		}
+
+		// @TODO: Match [index]Name
 	}
 
 	return ddic, nil
