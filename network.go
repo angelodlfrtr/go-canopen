@@ -28,6 +28,9 @@ type NetworkFramesChan struct {
 
 // Network represent the global nodes network
 type Network struct {
+	// mutex for FramesChans access
+	sync.Mutex
+
 	// Bus is the go-can bus
 	Bus can.Bus
 
@@ -39,9 +42,6 @@ type Network struct {
 
 	// NMTMaster contain nmt control struct
 	NMTMaster *NMTMaster
-
-	// mutex for FramesChans access
-	mutex sync.Mutex
 
 	// listening is network reading datas on can bus
 	listening bool
@@ -201,8 +201,8 @@ func (network *Network) GetNode(nodeID int) (*Node, error) {
 
 // AcquireFramesChan create a new FrameChan
 func (network *Network) AcquireFramesChan(filterFunc networkFramesChanFilterFunc) *NetworkFramesChan {
-	network.mutex.Lock()
-	defer network.mutex.Unlock()
+	network.Lock()
+	defer network.Unlock()
 
 	// Create frame chan
 	chanID := uuid.Must(uuid.NewRandom()).String()
@@ -220,8 +220,8 @@ func (network *Network) AcquireFramesChan(filterFunc networkFramesChanFilterFunc
 
 // ReleaseFramesChan release (close) a FrameChan
 func (network *Network) ReleaseFramesChan(id string) error {
-	network.mutex.Lock()
-	defer network.mutex.Unlock()
+	network.Lock()
+	defer network.Unlock()
 
 	var framesChan *NetworkFramesChan
 	var framesChanIndex *int
