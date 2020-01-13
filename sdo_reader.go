@@ -70,7 +70,7 @@ func (reader *SDOReader) RequestUpload() ([]byte, error) {
 		return true
 	}
 
-	frm, err := reader.SDOClient.Send(reader.buildRequestUploadBuf(), &expectFunc, nil)
+	frm, err := reader.SDOClient.Send(reader.buildRequestUploadBuf(), &expectFunc, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +116,7 @@ func (reader *SDOReader) Read() (*frame.Frame, error) {
 		return ((resCommand & 0xE0) != SDOResponseSegmentUpload)
 	}
 
-	return reader.SDOClient.Send(reader.buildRequestSegmentUploadBuf(), &expectFunc, nil)
+	return reader.SDOClient.Send(reader.buildRequestSegmentUploadBuf(), &expectFunc, nil, nil)
 }
 
 // ReadAll

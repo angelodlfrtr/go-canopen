@@ -59,11 +59,17 @@ func (sdoClient *SDOClient) Send(
 	req []byte,
 	expectFunc networkFramesChanFilterFunc,
 	timeout *time.Duration,
+	retryCount *int,
 ) (*frame.Frame, error) {
 	// Set default timeout
 	if timeout == nil {
-		dtm := time.Duration(500) * time.Millisecond
+		dtm := time.Duration(300) * time.Millisecond
 		timeout = &dtm
+	}
+
+	if retryCount == nil {
+		rtc := 3
+		retryCount = &rtc
 	}
 
 	var framesChan *NetworkFramesChan
@@ -82,16 +88,29 @@ func (sdoClient *SDOClient) Send(
 		return nil, nil
 	}
 
+	// Retry loop
+	remainingCount := *retryCount
 	var frm *frame.Frame
-	timer := time.NewTicker(*timeout)
-	defer timer.Stop()
 
-	select {
-	case <-timer.C:
-		break
-	case fr := <-framesChan.C:
-		frm = fr
-		break
+	for {
+		if remainingCount == 0 {
+			break
+		}
+
+		timer := time.NewTicker(*timeout)
+
+		select {
+		case <-timer.C:
+		case fr := <-framesChan.C:
+			frm = fr
+		}
+
+		timer.Stop()
+		remainingCount--
+
+		if frm != nil {
+			break
+		}
 	}
 
 	// Release data chan
@@ -99,6 +118,7 @@ func (sdoClient *SDOClient) Send(
 		return frm, err
 	}
 
+	// If no frm, timeout execeded
 	if frm == nil {
 		return nil, errors.New("timeout execeded")
 	}

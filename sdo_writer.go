@@ -95,7 +95,7 @@ func (writer *SDOWriter) RequestDownload(data []byte) error {
 		return true
 	}
 
-	_, err := writer.SDOClient.Send(buf, &expectFunc, nil)
+	_, err := writer.SDOClient.Send(buf, &expectFunc, nil, nil)
 	return err
 }
 
