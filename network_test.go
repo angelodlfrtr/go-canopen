@@ -151,7 +151,7 @@ func TestAll(t *testing.T) {
 
 	// Run search node ids a returned after ~500ms in my case
 	// So be secure with timeout
-	searchTimeout := time.Duration(1) * time.Second
+	searchTimeout := time.Duration(2) * time.Second
 	nodes, err := network.Search(256, searchTimeout)
 	if err != nil {
 		t.Fatal(err)
@@ -161,15 +161,33 @@ func TestAll(t *testing.T) {
 		t.Fatal("No nodes found")
 	}
 
-	for _, node := range nodes {
-		network.AddNode(node, dic, false)
-		t.Log("Handle node ID", node.ID)
+	for _, n := range nodes {
+		network.AddNode(n, dic, false)
+	}
 
-		// time.Sleep(1 * time.Second)
+	// node := nodes[0]
+	node, _ := network.GetNode(41)
+	t.Log("Handle node ID", node.ID)
 
-		// Read node PDO
-		if err := node.PDONode.Read(); err != nil {
-			t.Fatal(err)
+	// Read node PDO
+	if err := node.PDONode.Read(); err != nil {
+		t.Fatal(err)
+	}
+
+	// Listen PDO
+	eleMap := node.PDONode.FindName("SomeName")
+	changesChan := eleMap.AcquireChangesChan()
+
+	// Wait for any change
+	timer := time.NewTicker(10 * time.Second)
+
+	for {
+		select {
+		case data := <-changesChan.C:
+			t.Log(data)
+		case <-timer.C:
+			t.Log("Done")
+			return
 		}
 	}
 }

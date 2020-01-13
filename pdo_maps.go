@@ -36,8 +36,8 @@ func (maps *PDOMaps) FindIndex(idx int) *PDOMap {
 	return nil
 }
 
-// FindByName a map
-func (maps *PDOMaps) FindByName(name string) *PDOMap {
+// FindName a map
+func (maps *PDOMaps) FindName(name string) *PDOMap {
 	var m *PDOMap
 
 	for _, ma := range maps.Maps {

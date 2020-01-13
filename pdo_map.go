@@ -48,14 +48,12 @@ type PDOMap struct {
 
 // NewPDOMap return a PDOMap initialized
 func NewPDOMap(pdoNode *PDONode, comRecord, mapArray DicObject) *PDOMap {
-	pdoMap := &PDOMap{
+	return &PDOMap{
 		PDONode:    pdoNode,
 		ComRecord:  comRecord,
 		MapArray:   mapArray,
 		RTRAllowed: true,
 	}
-
-	return pdoMap
 }
 
 // FindIndex find a object by index
@@ -68,7 +66,7 @@ func (m *PDOMap) FindIndex(idx int) DicObject {
 }
 
 // FindName find a object by name
-func (m *PDOMap) FindByName(name string) DicObject {
+func (m *PDOMap) FindName(name string) DicObject {
 	var r DicObject
 
 	for _, rr := range m.Map {
@@ -121,7 +119,7 @@ func (m *PDOMap) Listen() error {
 		return frm.ArbitrationID == uint32(m.CobID)
 	}
 
-	framesChan := m.PDONode.Network.AcquireFramesChan(&filterFunc)
+	framesChan := m.PDONode.Node.Network.AcquireFramesChan(&filterFunc)
 
 	go func() {
 		for {
@@ -277,8 +275,6 @@ func (m *PDOMap) Read() error {
 		if !dicVar.IsDicVariable() {
 			dicVar = dicVar.FindIndex(subindex)
 		}
-
-		// @TODO : read variable ?
 
 		dicVar.SetOffset(offset)
 		// @TODO: check working

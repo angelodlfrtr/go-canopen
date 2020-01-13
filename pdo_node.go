@@ -1,10 +1,9 @@
 package canopen
 
 type PDONode struct {
-	Node    *Node
-	Network *Network
-	RX      *PDOMaps
-	TX      *PDOMaps
+	Node *Node
+	RX   *PDOMaps
+	TX   *PDOMaps
 }
 
 func NewPDONode(n *Node) *PDONode {
@@ -15,10 +14,10 @@ func NewPDONode(n *Node) *PDONode {
 	return pdoNode
 }
 
-func (node *PDONode) FindByName(name string) *PDOMap {
-	r := node.RX.FindByName(name)
+func (node *PDONode) FindName(name string) *PDOMap {
+	r := node.RX.FindName(name)
 	if r == nil {
-		r = node.TX.FindByName(name)
+		r = node.TX.FindName(name)
 	}
 
 	return r
