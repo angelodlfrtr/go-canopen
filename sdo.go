@@ -61,9 +61,18 @@ func (sdoClient *SDOClient) Send(
 	timeout *time.Duration,
 	retryCount *int,
 ) (*frame.Frame, error) {
+	// If no response wanted, just send and return
+	if expectFunc == nil {
+		if err := sdoClient.SendRequest(req); err != nil {
+			return nil, err
+		}
+
+		return nil, nil
+	}
+
 	// Set default timeout
 	if timeout == nil {
-		dtm := time.Duration(1000) * time.Millisecond
+		dtm := time.Duration(300) * time.Millisecond
 		timeout = &dtm
 	}
 
@@ -79,15 +88,6 @@ func (sdoClient *SDOClient) Send(
 		framesChan = sdoClient.Node.Network.AcquireFramesChan(expectFunc)
 	}
 
-	if err := sdoClient.SendRequest(req); err != nil {
-		return nil, err
-	}
-
-	// If no response wanted, just return nothing
-	if expectFunc == nil {
-		return nil, nil
-	}
-
 	// Retry loop
 	remainingCount := *retryCount
 	var frm *frame.Frame
@@ -97,6 +97,13 @@ func (sdoClient *SDOClient) Send(
 			break
 		}
 
+		if err := sdoClient.SendRequest(req); err != nil {
+			return nil, err
+		}
+
+		// Double timeout for each retry
+		newTimeout := *timeout * 2
+		timeout := &newTimeout
 		timer := time.NewTicker(*timeout)
 
 		select {
