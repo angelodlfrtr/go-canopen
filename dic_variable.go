@@ -127,6 +127,10 @@ func (variable *DicVariable) SetOffset(s int) {
 	variable.Offset = s
 }
 
+func (variable *DicVariable) GetOffset() int {
+	return variable.Offset
+}
+
 func (variable *DicVariable) AddValueDescription(name string, des string) {
 	variable.ValueDescriptions[name] = des
 }

@@ -56,6 +56,7 @@ func (array *DicArray) GetDataType() byte     { return 0x00 }
 func (array *DicArray) GetDataLen() int       { return 0 }
 func (array *DicArray) SetSize(s int)         {}
 func (array *DicArray) SetOffset(s int)       {}
+func (array *DicArray) GetOffset() int        { return 0 }
 func (array *DicArray) Read() error           { return nil }
 func (array *DicArray) Save() error           { return nil }
 func (array *DicArray) GetData() []byte       { return nil }

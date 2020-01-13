@@ -34,7 +34,6 @@ type PDOMap struct {
 
 	Map map[int]DicObject
 
-	// Maybe use bytes.Buffer
 	OldData []byte
 	Data    []byte
 
@@ -289,6 +288,98 @@ func (m *PDOMap) Read() error {
 	return m.Listen()
 }
 
+// Save pdo map
+// @TODO: Not Working, DO NOT USE
 func (m *PDOMap) Save() error {
+	if true {
+		return errors.New("PDOMap.Save() not implemented")
+	}
+
+	// Get COB ID
+	if err := m.ComRecord.FindIndex(1).Read(); err != nil {
+		return err
+	}
+
+	cobID := int(*m.ComRecord.FindIndex(1).GetUintVal())
+	m.CobID = cobID
+
+	// Is enabled
+	m.Enabled = (cobID & MapPDONotValid) == 0
+
+	// Is RTRAllowed
+	m.RTRAllowed = (cobID & MapRTRNotAllowed) == 0
+
+	// Setting COB-ID 0x%X and temporarily disabling PDO
+	m.ComRecord.FindIndex(1).SetData([]byte{byte(cobID | MapPDONotValid)})
+	if err := m.ComRecord.FindIndex(1).Save(); err != nil {
+		return err
+	}
+
+	// Set transType
+	if m.TransType != 0 {
+		m.ComRecord.FindIndex(2).SetData([]byte{m.TransType})
+		if err := m.ComRecord.FindIndex(2).Save(); err != nil {
+			return err
+		}
+	}
+
+	if m.EventTimer != 0 {
+		m.ComRecord.FindIndex(5).SetData([]byte{m.EventTimer})
+		if err := m.ComRecord.FindIndex(5).Save(); err != nil {
+			return err
+		}
+	}
+
+	if len(m.Map) > 0 {
+		for i, dicVar := range m.Map {
+			subIndex := i + 1
+			// nolint
+			val := ((((dicVar.GetIndex() << 16) | uint16(dicVar.GetSubIndex())) << 8) | uint16(dicVar.GetDataLen()))
+			mm := m.MapArray.FindIndex(uint16(subIndex))
+			mm.SetUintVal(uint64(val))
+
+			if err := mm.Save(); err != nil {
+				return err
+			}
+		}
+
+		mapLen := len(m.Map)
+		m.MapArray.FindIndex(0).SetIntVal(int64(mapLen))
+		if err := m.MapArray.FindIndex(0).Save(); err != nil {
+			return err
+		}
+
+		m.UpdateDataSize()
+	}
+
 	return nil
+}
+
+// RebuildData rebuild map data object from map variables
+func (m *PDOMap) RebuildData() {
+	data := make([]byte, m.GetTotalSize()/8)
+
+	for _, dicVar := range m.Map {
+		if len(dicVar.GetData()) == 0 {
+			continue
+		}
+
+		dicOffset := dicVar.GetOffset() / 8
+
+		for i := 0; i < len(dicVar.GetData()); i++ {
+			offset := i + dicOffset
+			data[offset] = dicVar.GetData()[i]
+		}
+	}
+
+	m.SetData(data)
+}
+
+// Transmit map data
+func (m *PDOMap) Transmit(rebuild bool) error {
+	if rebuild {
+		m.RebuildData()
+	}
+
+	return m.PDONode.Node.Network.Send(uint32(m.CobID), m.Data)
 }

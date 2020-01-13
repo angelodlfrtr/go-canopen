@@ -17,6 +17,7 @@ type DicObject interface {
 
 	SetSize(int)
 	SetOffset(int)
+	GetOffset() int
 
 	Read() error
 	Save() error

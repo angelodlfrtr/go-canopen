@@ -61,6 +61,7 @@ func (record *DicRecord) GetDataType() byte     { return 0x00 }
 func (record *DicRecord) GetDataLen() int       { return 0 }
 func (record *DicRecord) SetSize(s int)         {}
 func (record *DicRecord) SetOffset(s int)       {}
+func (record *DicRecord) GetOffset() int        { return 0 }
 func (record *DicRecord) Read() error           { return nil }
 func (record *DicRecord) Save() error           { return nil }
 func (record *DicRecord) GetData() []byte       { return nil }
