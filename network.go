@@ -150,6 +150,9 @@ func (network *Network) Stop() error {
 
 // Send a frame on network
 func (network *Network) Send(arbID uint32, data []byte) error {
+	network.Lock()
+	defer network.Unlock()
+
 	frm := &frame.Frame{
 		ArbitrationID: arbID,
 		DLC:           uint8(len(data)),
