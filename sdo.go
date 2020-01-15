@@ -2,11 +2,9 @@ package canopen
 
 import (
 	"errors"
-	"sync"
 	"time"
 
 	"github.com/angelodlfrtr/go-can/frame"
-	"github.com/google/uuid"
 )
 
 const (
@@ -28,8 +26,6 @@ const (
 
 // Client represent an SDO client
 type SDOClient struct {
-	sync.Mutex
-
 	Node      *Node
 	RXCobID   uint32
 	TXCobID   uint32
@@ -67,30 +63,6 @@ func (sdoClient *SDOClient) Send(
 	timeout *time.Duration,
 	retryCount *int,
 ) (*frame.Frame, error) {
-	// Wait to have the first place in send queue
-	sendUUID := uuid.Must(uuid.NewRandom()).String()
-	sdoClient.Lock()
-	sdoClient.SendQueue = append(sdoClient.SendQueue, sendUUID)
-	sdoClient.Unlock()
-
-	for {
-		sdoClient.Lock()
-
-		if sdoClient.SendQueue[0] == sendUUID {
-			sdoClient.Unlock()
-			break
-		}
-
-		sdoClient.Unlock()
-	}
-
-	// Release queue at end
-	defer func() {
-		sdoClient.Lock()
-		sdoClient.SendQueue = sdoClient.SendQueue[1:]
-		sdoClient.Unlock()
-	}()
-
 	// If no response wanted, just send and return
 	if expectFunc == nil {
 		if err := sdoClient.SendRequest(req); err != nil {
