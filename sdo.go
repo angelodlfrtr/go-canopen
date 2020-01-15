@@ -2,7 +2,6 @@ package canopen
 
 import (
 	"errors"
-	"fmt"
 	"sync"
 	"time"
 
@@ -90,8 +89,6 @@ func (sdoClient *SDOClient) Send(
 		sdoClient.Lock()
 		sdoClient.SendQueue = sdoClient.SendQueue[1:]
 		sdoClient.Unlock()
-
-		fmt.Println("Send queue released")
 	}()
 
 	// If no response wanted, just send and return
