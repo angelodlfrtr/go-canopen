@@ -74,7 +74,7 @@ func (sdoClient *SDOClient) Send(
 
 	// Set default timeout
 	if timeout == nil {
-		dtm := time.Duration(300) * time.Millisecond
+		dtm := time.Duration(500) * time.Millisecond
 		timeout = &dtm
 	}
 

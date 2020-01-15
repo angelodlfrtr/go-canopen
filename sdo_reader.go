@@ -133,6 +133,7 @@ func (reader *SDOReader) ReadAll() ([]byte, error) {
 	}
 
 	// Use Segmented upload
+
 	for {
 		frm, err := reader.Read()
 		if err != nil {

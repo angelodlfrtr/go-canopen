@@ -3,6 +3,7 @@ package canopen
 import (
 	"errors"
 	"reflect"
+	"sync"
 	"time"
 
 	"github.com/angelodlfrtr/go-can/frame"
@@ -19,8 +20,9 @@ type PDOMapChangeChan struct {
 	C  chan []byte
 }
 
-// PDOMap @TODO : mutex
 type PDOMap struct {
+	sync.Mutex
+
 	PDONode   *PDONode
 	ComRecord DicObject
 	MapArray  DicObject
@@ -127,6 +129,8 @@ func (m *PDOMap) Listen() error {
 				return
 			}
 
+			m.Lock()
+
 			select {
 			case frm := <-framesChan.C:
 				m.IsReceived = true
@@ -138,10 +142,16 @@ func (m *PDOMap) Listen() error {
 				// If data changed
 				if !reflect.DeepEqual(m.OldData, m.Data) {
 					for _, changeChan := range m.ChangeChans {
-						changeChan.C <- m.Data
+						select {
+						case changeChan.C <- m.Data:
+						default:
+						}
 					}
 				}
+
+				m.Unlock()
 			default:
+				m.Unlock()
 				continue
 			}
 		}

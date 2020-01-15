@@ -91,7 +91,11 @@ func (network *Network) Run() error {
 			ok, err := network.Bus.Read(frm)
 
 			if err != nil {
-				network.BusReadErrChan <- err
+				select {
+				case network.BusReadErrChan <- err:
+				default:
+				}
+
 				continue
 			}
 
@@ -106,10 +110,16 @@ func (network *Network) Run() error {
 			for _, ch := range network.FramesChans {
 				if ch.Filter != nil {
 					if (*ch.Filter)(frm) {
-						ch.C <- frm
+						select {
+						case ch.C <- frm:
+						default:
+						}
 					}
 				} else {
-					ch.C <- frm
+					select {
+					case ch.C <- frm:
+					default:
+					}
 				}
 			}
 
@@ -186,6 +196,8 @@ func (network *Network) AddNode(node *Node, objectDic *DicObjectDic, uploadEDS b
 	// Init node
 	node.Init()
 
+	network.Lock()
+	defer network.Unlock()
 	// Initialize Nodes
 	if network.Nodes == nil {
 		network.Nodes = map[int]*Node{}
@@ -266,7 +278,7 @@ func (network *Network) Search(limit int, timeout time.Duration) ([]*Node, error
 	// Send ping for `limit` nodes
 	for i := 0; i <= limit+1; i++ {
 		if err := network.Send(uint32(0x600+i), reqData); err != nil {
-			return nodes, err
+			return nil, err
 		}
 	}
 
@@ -275,7 +287,6 @@ func (network *Network) Search(limit int, timeout time.Duration) ([]*Node, error
 
 	framesChan := network.AcquireFramesChan(nil)
 	timer := time.NewTicker(timeout)
-	defer timer.Stop()
 
 	for {
 		select {

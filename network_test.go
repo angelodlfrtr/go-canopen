@@ -1,7 +1,9 @@
 package canopen
 
 import (
+	"fmt"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -151,7 +153,7 @@ func TestAll(t *testing.T) {
 
 	// Run search node ids a returned after ~500ms in my case
 	// So be secure with timeout
-	searchTimeout := time.Duration(2) * time.Second
+	searchTimeout := time.Duration(1) * time.Second
 	nodes, err := network.Search(256, searchTimeout)
 	if err != nil {
 		t.Fatal(err)
@@ -161,33 +163,37 @@ func TestAll(t *testing.T) {
 		t.Fatal("No nodes found")
 	}
 
+	fmt.Println("Nodes found", len(nodes))
+
+	var wg sync.WaitGroup
+	errChan := make(chan error)
+
 	for _, n := range nodes {
-		network.AddNode(n, dic, false)
+		wg.Add(1)
+
+		go func(node *Node) {
+			network.AddNode(node, dic, false)
+
+			fmt.Println("Reading PDO")
+
+			if err := node.PDONode.Read(); err != nil {
+				errChan <- err
+			}
+
+			// node := nodes[0]
+			// node, _ := network.GetNode(4)
+			t.Log("PDO NODE readed ID", node.ID)
+
+			wg.Done()
+		}(n)
 	}
 
-	// node := nodes[0]
-	node, _ := network.GetNode(71)
-	t.Log("Handle node ID", node.ID)
+	wg.Wait()
 
-	// Read node PDO
-	if err := node.PDONode.Read(); err != nil {
-		t.Fatal(err)
+	select {
+	case e := <-errChan:
+		t.Fatal(e)
+	default:
+		close(errChan)
 	}
-
-	// Listen PDO
-	// eleMap := node.PDONode.FindName("SomeName")
-	// changesChan := eleMap.AcquireChangesChan()
-
-	// // Wait for any change
-	// timer := time.NewTicker(10 * time.Second)
-
-	// for {
-	// select {
-	// case data := <-changesChan.C:
-	// t.Log(data)
-	// case <-timer.C:
-	// t.Log("Done")
-	// return
-	// }
-	// }
 }
