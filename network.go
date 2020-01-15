@@ -1,7 +1,6 @@
 package canopen
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"sync"
@@ -227,7 +226,7 @@ func (network *Network) AcquireFramesChan(filterFunc networkFramesChanFilterFunc
 }
 
 // ReleaseFramesChan release (close) a FrameChan
-func (network *Network) ReleaseFramesChan(id string) error {
+func (network *Network) ReleaseFramesChan(id string) {
 	network.Lock()
 	defer network.Unlock()
 
@@ -244,7 +243,7 @@ func (network *Network) ReleaseFramesChan(id string) error {
 	}
 
 	if framesChanIndex == nil {
-		return errors.New("no FrameChan found with specified ID")
+		return
 	}
 
 	// Close chan
@@ -255,8 +254,6 @@ func (network *Network) ReleaseFramesChan(id string) error {
 		network.FramesChans[:*framesChanIndex],
 		network.FramesChans[*framesChanIndex+1:]...,
 	)
-
-	return nil
 }
 
 // Search send data to network and wait for nodes response
@@ -283,10 +280,7 @@ func (network *Network) Search(limit int, timeout time.Duration) ([]*Node, error
 	for {
 		select {
 		case <-timer.C:
-			if err := network.ReleaseFramesChan(framesChan.ID); err != nil {
-				return nil, err
-			}
-
+			network.ReleaseFramesChan(framesChan.ID)
 			return nodes, nil
 		case frm := <-framesChan.C:
 			service := frm.ArbitrationID & 0x780

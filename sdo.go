@@ -81,12 +81,7 @@ func (sdoClient *SDOClient) Send(
 		retryCount = &rtc
 	}
 
-	var framesChan *NetworkFramesChan
-
-	// If response wanted, require data chan to network
-	if expectFunc != nil {
-		framesChan = sdoClient.Node.Network.AcquireFramesChan(expectFunc)
-	}
+	framesChan := sdoClient.Node.Network.AcquireFramesChan(expectFunc)
 
 	// Retry loop
 	remainingCount := *retryCount
@@ -101,13 +96,13 @@ func (sdoClient *SDOClient) Send(
 			return nil, err
 		}
 
-		// Double timeout for each retry
-		newTimeout := *timeout * 2
-		timeout := &newTimeout
 		timer := time.NewTicker(*timeout)
 
 		select {
 		case <-timer.C:
+			// Double timeout for each retry
+			newTimeout := *timeout * 2
+			timeout = &newTimeout
 		case fr := <-framesChan.C:
 			frm = fr
 		}
@@ -121,9 +116,7 @@ func (sdoClient *SDOClient) Send(
 	}
 
 	// Release data chan
-	if err := sdoClient.Node.Network.ReleaseFramesChan(framesChan.ID); err != nil {
-		return frm, err
-	}
+	sdoClient.Node.Network.ReleaseFramesChan(framesChan.ID)
 
 	// If no frm, timeout execeded
 	if frm == nil {

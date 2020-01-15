@@ -69,11 +69,7 @@ func (master *NMTMaster) UnlistenForHeartbeat() error {
 
 	// Release chan
 	// The chan stop will have effect to close goroutine launched in ListenForHeartbeat
-	err := master.Network.ReleaseFramesChan(*master.networkFramesChanID)
-	if err != nil {
-		return err
-	}
-
+	master.Network.ReleaseFramesChan(*master.networkFramesChanID)
 	master.Listening = false
 
 	return nil
