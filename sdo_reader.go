@@ -26,7 +26,7 @@ func NewSDOReader(sdoClient *SDOClient, index uint16, subIndex uint8) *SDOReader
 	}
 }
 
-// buildRequestSegmentUploadBuf working
+// buildRequestUploadBuf working
 func (reader *SDOReader) buildRequestUploadBuf() []byte {
 	buf := make([]byte, 8) // 8 len is important
 
@@ -37,8 +37,9 @@ func (reader *SDOReader) buildRequestUploadBuf() []byte {
 	return buf
 }
 
+// buildRequestSegmentUploadBuf
 func (reader *SDOReader) buildRequestSegmentUploadBuf() []byte {
-	buf := make([]byte, 1)
+	buf := make([]byte, 8)
 
 	command := SDORequestSegmentUpload
 	command |= reader.Toggle
@@ -101,7 +102,7 @@ func (reader *SDOReader) RequestUpload() ([]byte, error) {
 	return nil, nil
 }
 
-// Read
+// Read segmented uploads
 func (reader *SDOReader) Read() (*frame.Frame, error) {
 	expectFunc := func(frm *frame.Frame) bool {
 		if frm == nil {
@@ -113,14 +114,13 @@ func (reader *SDOReader) Read() (*frame.Frame, error) {
 		}
 
 		resCommand := frm.Data[0]
-		return ((resCommand & 0xE0) != SDOResponseSegmentUpload)
+		return (resCommand & 0xE0) == SDOResponseSegmentUpload
 	}
 
 	return reader.SDOClient.Send(reader.buildRequestSegmentUploadBuf(), &expectFunc, nil, nil)
 }
 
 // ReadAll
-// @TODO: check if we not have to include Pos or something similar in request segment upload request
 func (reader *SDOReader) ReadAll() ([]byte, error) {
 	data, err := reader.RequestUpload()
 	if err != nil {
@@ -133,7 +133,6 @@ func (reader *SDOReader) ReadAll() ([]byte, error) {
 	}
 
 	// Use Segmented upload
-
 	for {
 		frm, err := reader.Read()
 		if err != nil {

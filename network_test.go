@@ -177,7 +177,10 @@ func TestAll(t *testing.T) {
 			fmt.Println("Reading PDO")
 
 			if err := node.PDONode.Read(); err != nil {
-				errChan <- err
+				select {
+				case errChan <- err:
+				default:
+				}
 			}
 
 			// node := nodes[0]
