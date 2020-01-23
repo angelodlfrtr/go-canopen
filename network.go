@@ -42,9 +42,13 @@ type Network struct {
 	// NMTMaster contain nmt control struct
 	NMTMaster *NMTMaster
 
-	// listening is network reading datas on can bus
-	listening bool
+	// stopChan permit to stop network
+	stopChan chan bool
 
+	// running is network running
+	running bool
+
+	// BusReadErrChan @TODO on go-can
 	BusReadErrChan chan error
 }
 
@@ -61,9 +65,11 @@ func NewNetwork(bus can.Bus) (*Network, error) {
 
 // Run listen handlers for frames on bus
 func (network *Network) Run() error {
-	if network.listening {
+	if network.running {
 		return nil
 	}
+
+	network.running = true
 
 	// @TODO: check bus is opened
 
@@ -72,58 +78,30 @@ func (network *Network) Run() error {
 		return err
 	}
 
-	// Set as listening
-	network.listening = true
-
 	go func() {
 		for {
-			network.Lock()
-			listening := network.listening
-			network.Unlock()
-
-			if !listening {
-				// Stop loop and goroutine
-				break
-			}
-
-			// Read frame
-			frm := &frame.Frame{}
-			ok, err := network.Bus.Read(frm)
-
-			if err != nil {
-				select {
-				case network.BusReadErrChan <- err:
-				default:
-				}
-
-				continue
-			}
-
-			// If not data continue
-			if !ok {
-				continue
-			}
-
-			network.Lock()
-
-			// Send frame to frames chans
-			for _, ch := range network.FramesChans {
-				if ch.Filter != nil {
-					if (*ch.Filter)(frm) {
+			select {
+			case <-network.stopChan:
+				// close goroutine
+				return
+			case frm := <-network.Bus.ReadChan():
+				// Send frame to frames chans
+				for _, ch := range network.FramesChans {
+					if ch.Filter != nil {
+						if (*ch.Filter)(frm) {
+							select {
+							case ch.C <- frm:
+							default:
+							}
+						}
+					} else {
 						select {
 						case ch.C <- frm:
 						default:
 						}
 					}
-				} else {
-					select {
-					case ch.C <- frm:
-					default:
-					}
 				}
 			}
-
-			network.Unlock()
 		}
 	}()
 
@@ -132,7 +110,7 @@ func (network *Network) Run() error {
 
 // Stop handlers for frames on bus
 func (network *Network) Stop() error {
-	if !network.listening {
+	if !network.running {
 		return nil
 	}
 
@@ -141,8 +119,7 @@ func (network *Network) Stop() error {
 		return err
 	}
 
-	network.listening = false
-
+	network.stopChan <- true
 	// @TODO: stop all nmtmasters, and all chan listeners
 
 	return nil

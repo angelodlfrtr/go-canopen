@@ -27,7 +27,6 @@ type PDOMap struct {
 	ComRecord DicObject
 	MapArray  DicObject
 
-	Listening  bool
 	Enabled    bool
 	CobID      int
 	RTRAllowed bool
@@ -45,6 +44,9 @@ type PDOMap struct {
 	IsReceived bool
 
 	ChangeChans []*PDOMapChangeChan
+
+	listening    bool
+	chanChanStop chan bool
 }
 
 // NewPDOMap return a PDOMap initialized
@@ -107,11 +109,11 @@ func (m *PDOMap) Listen() error {
 		return errors.New("call Read() on this map before listening")
 	}
 
-	if m.Listening {
+	if m.listening {
 		return nil
 	}
 
-	m.Listening = true
+	m.listening = true
 
 	now := time.Now()
 	m.Timestamp = &now
@@ -124,17 +126,15 @@ func (m *PDOMap) Listen() error {
 
 	go func() {
 		for {
-			// Stop routine if listening == false
-			if !m.Listening {
-				return
-			}
-
-			m.Lock()
-
 			select {
+			case <-m.chanChanStop:
+				// stop goroutine
+				return
 			case frm := <-framesChan.C:
+				m.Lock()
 				m.IsReceived = true
 				m.SetData(frm.GetData())
+
 				// @TODO m.Period = frm.Timestamp - m.Timestamp;
 				now := time.Now()
 				m.Timestamp = &now
@@ -150,9 +150,6 @@ func (m *PDOMap) Listen() error {
 				}
 
 				m.Unlock()
-			default:
-				m.Unlock()
-				continue
 			}
 		}
 	}()
@@ -162,7 +159,16 @@ func (m *PDOMap) Listen() error {
 
 // Unlisten for changes on map from network
 func (m *PDOMap) Unlisten() {
-	m.Listening = false
+	m.Lock()
+	defer m.Unlock()
+
+	if !m.listening {
+		return
+	}
+
+	m.listening = false
+	m.chanChanStop <- true
+	close(m.chanChanStop)
 }
 
 // AcquireChangesChan create a new PDOMapChangeChan

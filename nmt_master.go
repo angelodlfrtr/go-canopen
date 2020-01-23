@@ -100,14 +100,8 @@ func (master *NMTMaster) ListenForHeartbeat() error {
 
 	// Listen for messages
 	go func() {
-		for {
-			frm, ok := <-framesChan.C
-
-			if !ok {
-				// Stop loop (and goroutine)
-				return
-			}
-
+		select {
+		case frm := <-framesChan.C:
 			master.handleHeartbeatFrame(frm)
 		}
 	}()
@@ -173,13 +167,11 @@ func (master *NMTMaster) WaitForBootup(timeout *time.Duration) error {
 			return errors.New("timeout execeded")
 		}
 
-		if master.StateReceived == nil {
-			continue
-		}
-
 		if *master.StateReceived == 0 {
 			break
 		}
+
+		time.Sleep(time.Millisecond * 100)
 	}
 
 	return nil
