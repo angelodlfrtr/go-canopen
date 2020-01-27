@@ -266,7 +266,7 @@ func (network *Network) Search(limit int, timeout time.Duration) ([]*Node, error
 	services := []uint32{0x700, 0x580, 0x180, 0x280, 0x380, 0x480, 0x80}
 
 	framesChan := network.AcquireFramesChan(nil)
-	timer := time.NewTicker(timeout)
+	timer := time.NewTimer(timeout)
 
 	for {
 		select {

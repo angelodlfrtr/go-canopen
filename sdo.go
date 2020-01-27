@@ -98,7 +98,7 @@ func (sdoClient *SDOClient) Send(
 			return nil, err
 		}
 
-		timer := time.NewTicker(*timeout)
+		timer := time.NewTimer(*timeout)
 
 		select {
 		case <-timer.C:
