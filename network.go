@@ -10,7 +10,6 @@ import (
 	"github.com/angelodlfrtr/go-can/frame"
 	"github.com/angelodlfrtr/go-canopen/utils"
 	"github.com/google/uuid"
-	"github.com/jinzhu/copier"
 )
 
 type networkFramesChanFilterFunc *(func(*frame.Frame) bool)
@@ -164,14 +163,8 @@ func (network *Network) AddNode(node *Node, objectDic *DicObjectDic, uploadEDS b
 	// Set node network
 	node.SetNetwork(network)
 
-	// Clone object dic
-	clonedObjectDic := &DicObjectDic{}
-	if err := copier.Copy(clonedObjectDic, objectDic); err != nil {
-		panic(err)
-	}
-
 	// Set ObjectDic
-	node.SetObjectDic(clonedObjectDic)
+	node.SetObjectDic(objectDic)
 
 	// Init node
 	node.Init()

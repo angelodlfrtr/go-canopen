@@ -145,12 +145,6 @@ func TestAll(t *testing.T) {
 		t.Fatal("Invalid object dic file path")
 	}
 
-	// Parse eds file
-	dic, err := DicEDSParse(objectDicFilePath)
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	// Run search node ids a returned after ~500ms in my case
 	// So be secure with timeout
 	searchTimeout := time.Duration(1) * time.Second
@@ -172,6 +166,10 @@ func TestAll(t *testing.T) {
 		wg.Add(1)
 
 		go func(node *Node) {
+
+			// Parse eds file
+			dic := DicMustParse(DicEDSParse(objectDicFilePath))
+
 			network.AddNode(node, dic, false)
 
 			fmt.Println("Reading PDO")
