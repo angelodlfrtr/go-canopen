@@ -64,7 +64,7 @@ func (master *NMTMaster) UnlistenForHeartbeat() error {
 	}
 
 	if master.networkFramesChanID == nil {
-		return errors.New("no network defined")
+		return errors.New("Not listening")
 	}
 
 	// Release chan
@@ -85,6 +85,8 @@ func (master *NMTMaster) ListenForHeartbeat() error {
 	if master.Listening {
 		return nil
 	}
+
+	master.Listening = true
 
 	// Hearbeat message arbID
 	eventName := 0x700 + master.NodeID
@@ -126,19 +128,19 @@ func (master *NMTMaster) handleHeartbeatFrame(frm *frame.Frame) {
 }
 
 // SendCommand to target node
-// @TODO: check if metohd is valid in python lib
 func (master *NMTMaster) SendCommand(code int) error {
-	data := []uint8{uint8(code), uint8(master.NodeID)}
+	data := []byte{uint8(code), uint8(master.NodeID)}
 	return master.Network.Send(0, data)
 }
 
 // SetState for target node, and send command
-func (master *NMTMaster) SetState(newState int) error {
-	if _, ok := NMTCommandToState[newState]; !ok {
+func (master *NMTMaster) SetState(cmd string) error {
+	if _, ok := NMTCommands[cmd]; !ok {
 		return errors.New("invalid NMT state")
 	}
 
-	code := NMTCommandToState[newState]
+	code := NMTCommands[cmd]
+	master.StateReceived = nil
 
 	return master.SendCommand(code)
 }
@@ -167,8 +169,10 @@ func (master *NMTMaster) WaitForBootup(timeout *time.Duration) error {
 			return errors.New("timeout execeded")
 		}
 
-		if *master.StateReceived == 0 {
-			break
+		if master.StateReceived != nil {
+			if *master.StateReceived == 5 {
+				break
+			}
 		}
 
 		time.Sleep(time.Millisecond * 100)
