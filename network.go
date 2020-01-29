@@ -166,8 +166,16 @@ func (network *Network) AddNode(node *Node, objectDic *DicObjectDic, uploadEDS b
 	// Set ObjectDic
 	node.SetObjectDic(objectDic)
 
+	// Set nmt and listen for nmt hearbeat messages
+	node.NMTMaster = NewNMTMaster(node.ID, network)
+
 	// Init node
 	node.Init()
+
+	// Start nmt master hearbeat listener
+	if err := node.NMTMaster.ListenForHeartbeat(); err != nil {
+		log.Fatalf("Failed to start nmt master on node %d with err %v", node.ID, err)
+	}
 
 	network.Lock()
 	defer network.Unlock()
