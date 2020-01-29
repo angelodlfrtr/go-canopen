@@ -44,6 +44,7 @@ type NMTMaster struct {
 	StateReceived *int
 	Timestamp     *time.Time
 	Listening     bool
+	stopChan      chan bool
 
 	// networkFramesChanID is used to store and later close the network frames channel
 	networkFramesChanID *string
@@ -52,8 +53,9 @@ type NMTMaster struct {
 // NewNMTMaster return a new instance of Master
 func NewNMTMaster(nodeID int, network *Network) *NMTMaster {
 	return &NMTMaster{
-		NodeID:  nodeID,
-		Network: network,
+		NodeID:   nodeID,
+		Network:  network,
+		stopChan: make(chan bool, 1),
 	}
 }
 
@@ -67,9 +69,13 @@ func (master *NMTMaster) UnlistenForHeartbeat() error {
 		return errors.New("Not listening")
 	}
 
+	// Stop listen
+	master.stopChan <- true
+
 	// Release chan
 	// The chan stop will have effect to close goroutine launched in ListenForHeartbeat
 	master.Network.ReleaseFramesChan(*master.networkFramesChanID)
+
 	master.Listening = false
 
 	return nil
@@ -103,6 +109,9 @@ func (master *NMTMaster) ListenForHeartbeat() error {
 	// Listen for messages
 	go func() {
 		select {
+		case <-master.stopChan:
+			// Stop goroutine
+			return
 		case frm := <-framesChan.C:
 			master.handleHeartbeatFrame(frm)
 		}

@@ -114,6 +114,7 @@ func (m *PDOMap) Listen() error {
 	}
 
 	m.listening = true
+	m.chanChanStop = make(chan bool, 1)
 
 	now := time.Now()
 	m.Timestamp = &now
@@ -166,9 +167,10 @@ func (m *PDOMap) Unlisten() {
 		return
 	}
 
-	m.listening = false
 	m.chanChanStop <- true
 	close(m.chanChanStop)
+
+	m.listening = false
 }
 
 // AcquireChangesChan create a new PDOMapChangeChan

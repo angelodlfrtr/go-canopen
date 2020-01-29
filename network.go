@@ -69,6 +69,7 @@ func (network *Network) Run() error {
 	}
 
 	network.running = true
+	network.stopChan = make(chan bool, 1)
 
 	// @TODO: check bus is opened
 
@@ -116,6 +117,11 @@ func (network *Network) Stop() error {
 	// Start network nmt master hearbeat listener
 	if err := network.NMTMaster.UnlistenForHeartbeat(); err != nil {
 		return err
+	}
+
+	// Stop each nodes
+	for _, node := range network.Nodes {
+		node.Stop()
 	}
 
 	network.stopChan <- true

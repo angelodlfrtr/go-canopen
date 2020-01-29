@@ -197,6 +197,16 @@ func TestAll(t *testing.T) {
 	default:
 		close(errChan)
 	}
+
+	fmt.Println("Done")
+
+	// Stop network
+	network.Stop()
+	fmt.Println("Network stopped")
+
+	// Stop bus
+	bus.Close()
+	fmt.Println("Bus closed")
 }
 
 func TestReboot(t *testing.T) {

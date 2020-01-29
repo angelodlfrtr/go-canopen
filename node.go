@@ -42,3 +42,17 @@ func (node *Node) Init() {
 	// @TODO: list for NMTMaster
 	// @TODO: implement EMCY
 }
+
+// Stop node
+func (node *Node) Stop() {
+	// Stop nmt master
+	node.NMTMaster.UnlistenForHeartbeat()
+
+	// Stop pdo listeners
+	for _, mm := range node.PDONode.RX.Maps {
+		mm.Unlisten()
+	}
+	for _, mm := range node.PDONode.TX.Maps {
+		mm.Unlisten()
+	}
+}
