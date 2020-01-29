@@ -125,7 +125,6 @@ func (network *Network) Stop() error {
 	}
 
 	network.stopChan <- true
-	// @TODO: stop all nmtmasters, and all chan listeners
 
 	return nil
 }

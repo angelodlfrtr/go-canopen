@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	MapPDONotValid   int = 1 << 31
-	MapRTRNotAllowed int = 1 << 30
+	MapPDONotValid   int64 = 1 << 31
+	MapRTRNotAllowed int   = 1 << 30
 )
 
 type PDOMapChangeChan struct {
@@ -229,7 +229,7 @@ func (m *PDOMap) Read() error {
 	m.CobID = cobID
 
 	// Is enabled
-	m.Enabled = (cobID & MapPDONotValid) == 0
+	m.Enabled = (int64(cobID) & MapPDONotValid) == 0
 
 	// Is RTRAllowed
 	m.RTRAllowed = (cobID & MapRTRNotAllowed) == 0
@@ -322,13 +322,13 @@ func (m *PDOMap) Save() error {
 	m.CobID = cobID
 
 	// Is enabled
-	m.Enabled = (cobID & MapPDONotValid) == 0
+	m.Enabled = (int64(cobID) & MapPDONotValid) == 0
 
 	// Is RTRAllowed
 	m.RTRAllowed = (cobID & MapRTRNotAllowed) == 0
 
 	// Setting COB-ID 0x%X and temporarily disabling PDO
-	m.ComRecord.FindIndex(1).SetData([]byte{byte(cobID | MapPDONotValid)})
+	m.ComRecord.FindIndex(1).SetData([]byte{byte(int64(cobID) | MapPDONotValid)})
 	if err := m.ComRecord.FindIndex(1).Save(); err != nil {
 		return err
 	}
