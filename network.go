@@ -7,12 +7,11 @@ import (
 	"time"
 
 	"github.com/angelodlfrtr/go-can"
-	"github.com/angelodlfrtr/go-can/frame"
 	"github.com/angelodlfrtr/go-canopen/utils"
 	"github.com/google/uuid"
 )
 
-type networkFramesChanFilterFunc *(func(*frame.Frame) bool)
+type networkFramesChanFilterFunc *(func(*can.Frame) bool)
 
 // FrameChan contain a Chan, and ID and a Filter function
 // Each FrameChan can have a filter function which return a boolean,
@@ -20,7 +19,7 @@ type networkFramesChanFilterFunc *(func(*frame.Frame) bool)
 // else dont send frame.
 type NetworkFramesChan struct {
 	ID     string
-	C      chan *frame.Frame
+	C      chan *can.Frame
 	Filter networkFramesChanFilterFunc
 }
 
@@ -134,7 +133,7 @@ func (network *Network) Send(arbID uint32, data []byte) error {
 	network.Lock()
 	defer network.Unlock()
 
-	frm := &frame.Frame{
+	frm := &can.Frame{
 		ArbitrationID: arbID,
 		DLC:           uint8(len(data)),
 	}
@@ -214,7 +213,7 @@ func (network *Network) AcquireFramesChan(filterFunc networkFramesChanFilterFunc
 	frameChan := &NetworkFramesChan{
 		ID:     chanID,
 		Filter: filterFunc,
-		C:      make(chan *frame.Frame),
+		C:      make(chan *can.Frame),
 	}
 
 	// Append network.FramesChans

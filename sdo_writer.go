@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 
-	"github.com/angelodlfrtr/go-can/frame"
+	"github.com/angelodlfrtr/go-can"
 )
 
 type SDOWriter struct {
@@ -74,7 +74,7 @@ func (writer *SDOWriter) RequestDownload(data []byte) error {
 		return errors.New("SDO segmented download not yet implemented")
 	}
 
-	expectFunc := func(frm *frame.Frame) bool {
+	expectFunc := func(frm *can.Frame) bool {
 		resCommand := frm.Data[0]
 		resIndex := binary.LittleEndian.Uint16(frm.Data[1:])
 		resSubindex := frm.Data[3]

@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/angelodlfrtr/go-can/frame"
+	"github.com/angelodlfrtr/go-can"
 	"github.com/google/uuid"
 )
 
@@ -119,7 +119,7 @@ func (m *PDOMap) Listen() error {
 	now := time.Now()
 	m.Timestamp = &now
 
-	filterFunc := func(frm *frame.Frame) bool {
+	filterFunc := func(frm *can.Frame) bool {
 		return frm.ArbitrationID == uint32(m.CobID)
 	}
 

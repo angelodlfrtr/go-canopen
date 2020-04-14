@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/angelodlfrtr/go-can/frame"
+	"github.com/angelodlfrtr/go-can"
 )
 
 var NMTStates = map[int]string{
@@ -98,7 +98,7 @@ func (master *NMTMaster) ListenForHeartbeat() error {
 	eventName := 0x700 + master.NodeID
 
 	// Filter func for messages on network
-	filterFunc := func(frm *frame.Frame) bool {
+	filterFunc := func(frm *can.Frame) bool {
 		return frm.ArbitrationID == uint32(eventName)
 	}
 
@@ -120,7 +120,7 @@ func (master *NMTMaster) ListenForHeartbeat() error {
 	return nil
 }
 
-func (master *NMTMaster) handleHeartbeatFrame(frm *frame.Frame) {
+func (master *NMTMaster) handleHeartbeatFrame(frm *can.Frame) {
 	now := time.Now()
 	master.Timestamp = &now
 

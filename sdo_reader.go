@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 
-	"github.com/angelodlfrtr/go-can/frame"
+	"github.com/angelodlfrtr/go-can"
 )
 
 type SDOReader struct {
@@ -50,7 +50,7 @@ func (reader *SDOReader) buildRequestSegmentUploadBuf() []byte {
 
 // RequestUpload returns data if EXPEDITED, else nil
 func (reader *SDOReader) RequestUpload() ([]byte, error) {
-	expectFunc := func(frm *frame.Frame) bool {
+	expectFunc := func(frm *can.Frame) bool {
 		resCommand := frm.Data[0]
 		resIndex := binary.LittleEndian.Uint16(frm.Data[1:])
 		resSubindex := frm.Data[3]
@@ -103,8 +103,8 @@ func (reader *SDOReader) RequestUpload() ([]byte, error) {
 }
 
 // Read segmented uploads
-func (reader *SDOReader) Read() (*frame.Frame, error) {
-	expectFunc := func(frm *frame.Frame) bool {
+func (reader *SDOReader) Read() (*can.Frame, error) {
+	expectFunc := func(frm *can.Frame) bool {
 		if frm == nil {
 			return false
 		}

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/angelodlfrtr/go-can/frame"
+	"github.com/angelodlfrtr/go-can"
 )
 
 const (
@@ -62,7 +62,7 @@ func (sdoClient *SDOClient) Send(
 	expectFunc networkFramesChanFilterFunc,
 	timeout *time.Duration,
 	retryCount *int,
-) (*frame.Frame, error) {
+) (*can.Frame, error) {
 	// If no response wanted, just send and return
 	if expectFunc == nil {
 		if err := sdoClient.SendRequest(req); err != nil {
@@ -87,7 +87,7 @@ func (sdoClient *SDOClient) Send(
 
 	// Retry loop
 	remainingCount := *retryCount
-	var frm *frame.Frame
+	var frm *can.Frame
 
 	for {
 		if remainingCount == 0 {
