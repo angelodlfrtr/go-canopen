@@ -4,7 +4,7 @@ Implement canopen protocol with [https://github.com/angelodlfrtr/go-can](https:/
 
 Port of [https://github.com/christiansandberg/canopen](https://github.com/christiansandberg/canopen) written in Python
 
-**In active development, not working at all**
+**In active development**
 
 ## Installation
 
