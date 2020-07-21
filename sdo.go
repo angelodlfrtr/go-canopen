@@ -24,7 +24,7 @@ const (
 	SDONoMoreData    uint8 = 0x1
 )
 
-// Client represent an SDO client
+// SDOClient represent an SDO client
 type SDOClient struct {
 	Node      *Node
 	RXCobID   uint32

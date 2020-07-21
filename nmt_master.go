@@ -66,7 +66,7 @@ func (master *NMTMaster) UnlistenForHeartbeat() error {
 	}
 
 	if master.networkFramesChanID == nil {
-		return errors.New("Not listening")
+		return errors.New("not listening")
 	}
 
 	// Stop listen

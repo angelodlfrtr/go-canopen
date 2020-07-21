@@ -11,18 +11,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type networkFramesChanFilterFunc *(func(*can.Frame) bool)
-
-// FrameChan contain a Chan, and ID and a Filter function
-// Each FrameChan can have a filter function which return a boolean,
-// and for each frame, the filter func is called. If func return true, the frame is returned,
-// else dont send frame.
-type NetworkFramesChan struct {
-	ID     string
-	C      chan *can.Frame
-	Filter networkFramesChanFilterFunc
-}
-
 // Network represent the global nodes network
 type Network struct {
 	// mutex for FramesChans access
@@ -70,8 +58,6 @@ func (network *Network) Run() error {
 	network.running = true
 	network.stopChan = make(chan bool, 1)
 
-	// @TODO: check bus is opened
-
 	// Start network nmt master hearbeat listener
 	if err := network.NMTMaster.ListenForHeartbeat(); err != nil {
 		return err
@@ -81,25 +67,17 @@ func (network *Network) Run() error {
 		for {
 			select {
 			case <-network.stopChan:
-				// close goroutine
+				// Stop goroutine
 				return
 			case frm := <-network.Bus.ReadChan():
+				network.Lock()
+
 				// Send frame to frames chans
 				for _, ch := range network.FramesChans {
-					if ch.Filter != nil {
-						if (*ch.Filter)(frm) {
-							select {
-							case ch.C <- frm:
-							default:
-							}
-						}
-					} else {
-						select {
-						case ch.C <- frm:
-						default:
-						}
-					}
+					ch.Publish(frm)
 				}
+
+				network.Unlock()
 			}
 		}
 	}()
@@ -130,9 +108,6 @@ func (network *Network) Stop() error {
 
 // Send a frame on network
 func (network *Network) Send(arbID uint32, data []byte) error {
-	network.Lock()
-	defer network.Unlock()
-
 	frm := &can.Frame{
 		ArbitrationID: arbID,
 		DLC:           uint8(len(data)),
@@ -162,6 +137,7 @@ func (network *Network) AddNode(node *Node, objectDic *DicObjectDic, uploadEDS b
 
 	if node == nil {
 		log.Fatal("Cannot use nil Node")
+		return nil
 	}
 
 	// Set node network
@@ -196,6 +172,9 @@ func (network *Network) AddNode(node *Node, objectDic *DicObjectDic, uploadEDS b
 
 // GetNode by node id. Return error if node dont exist in network.Nodes
 func (network *Network) GetNode(nodeID int) (*Node, error) {
+	network.Lock()
+	defer network.Unlock()
+
 	if node, ok := network.Nodes[nodeID]; ok {
 		return node, nil
 	}

@@ -1,12 +1,12 @@
 package canopen
 
-// Maps define a PDO map
+// PDOMaps define a PDO map
 type PDOMaps struct {
 	PDONode *PDONode
 	Maps    map[int]*PDOMap
 }
 
-// NewMap create a new Maps
+// NewPDOMaps create a new Maps
 func NewPDOMaps(comOffset, mapOffset int, pdoNode *PDONode) *PDOMaps {
 	pdoMaps := &PDOMaps{
 		PDONode: pdoNode,
@@ -27,7 +27,7 @@ func NewPDOMaps(comOffset, mapOffset int, pdoNode *PDONode) *PDOMaps {
 	return pdoMaps
 }
 
-// Find a map by index
+// FindIndex a map by index
 func (maps *PDOMaps) FindIndex(idx int) *PDOMap {
 	if m, ok := maps.Maps[idx]; ok {
 		return m

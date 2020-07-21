@@ -358,7 +358,11 @@ func (variable *DicVariable) SetIntVal(a int64) {
 
 func (variable *DicVariable) SetBoolVal(a bool) {
 	if variable.DataType == Boolean {
-		// @TODO
+		if a {
+			variable.Data[0] = 0x01
+		} else {
+			variable.Data[0] = 0x02
+		}
 	}
 }
 

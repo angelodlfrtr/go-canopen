@@ -2,6 +2,7 @@ package canopen
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"sync"
 	"testing"
@@ -16,7 +17,7 @@ func getTestPort() string {
 		return a
 	}
 
-	return "/dev/tty.some-usbserial"
+	return "/dev/tty.usbserial-1420"
 }
 
 func getNetwork() (*Network, error) {
@@ -147,7 +148,7 @@ func TestAll(t *testing.T) {
 
 	// Run search node ids a returned after ~500ms in my case
 	// So be secure with timeout
-	searchTimeout := time.Duration(1) * time.Second
+	searchTimeout := time.Duration(5) * time.Second
 	nodes, err := network.Search(256, searchTimeout)
 	if err != nil {
 		t.Fatal(err)
@@ -160,8 +161,6 @@ func TestAll(t *testing.T) {
 	fmt.Println("Nodes found", len(nodes))
 
 	var wg sync.WaitGroup
-	errChan := make(chan error)
-
 	for _, n := range nodes {
 		wg.Add(1)
 
@@ -175,10 +174,7 @@ func TestAll(t *testing.T) {
 			fmt.Println("Reading PDO")
 
 			if err := node.PDONode.Read(); err != nil {
-				select {
-				case errChan <- err:
-				default:
-				}
+				log.Fatal(err)
 			}
 
 			// node := nodes[0]
@@ -188,15 +184,7 @@ func TestAll(t *testing.T) {
 			wg.Done()
 		}(n)
 	}
-
 	wg.Wait()
-
-	select {
-	case e := <-errChan:
-		t.Fatal(e)
-	default:
-		close(errChan)
-	}
 
 	fmt.Println("Done")
 

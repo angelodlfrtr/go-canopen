@@ -120,7 +120,7 @@ func (reader *SDOReader) Read() (*can.Frame, error) {
 	return reader.SDOClient.Send(reader.buildRequestSegmentUploadBuf(), &expectFunc, nil, nil)
 }
 
-// ReadAll
+// ReadAll ..
 func (reader *SDOReader) ReadAll() ([]byte, error) {
 	data, err := reader.RequestUpload()
 	if err != nil {

@@ -9,8 +9,7 @@ import (
 	"gopkg.in/ini.v1"
 )
 
-// Parse EDS File
-// If in is string, it must be a path to a file
+// DicEDSParse If in is string, it must be a path to a file
 // else if in must be eds data as []byte
 func DicEDSParse(in interface{}) (*DicObjectDic, error) {
 	// Load ini file
