@@ -52,10 +52,11 @@ type PDOMap struct {
 // NewPDOMap return a PDOMap initialized
 func NewPDOMap(pdoNode *PDONode, comRecord, mapArray DicObject) *PDOMap {
 	return &PDOMap{
-		PDONode:    pdoNode,
-		ComRecord:  comRecord,
-		MapArray:   mapArray,
-		RTRAllowed: true,
+		PDONode:     pdoNode,
+		ComRecord:   comRecord,
+		MapArray:    mapArray,
+		RTRAllowed:  true,
+		ChangeChans: []*PDOMapChangeChan{},
 	}
 }
 
