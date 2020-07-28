@@ -79,7 +79,7 @@ func (sdoClient *SDOClient) Send(
 	}
 
 	if retryCount == nil {
-		rtc := 3
+		rtc := 4
 		retryCount = &rtc
 	}
 
