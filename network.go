@@ -239,7 +239,7 @@ func (network *Network) Search(limit int, timeout time.Duration) ([]*Node, error
 
 	// Send ping for `limit` nodes
 	reqData := []byte{0x40, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00}
-	for i := 0; i <= limit+1; i++ {
+	for i := 1; i <= limit; i++ {
 		if err := network.Send(uint32(0x600+i), reqData); err != nil {
 			return nil, err
 		}
