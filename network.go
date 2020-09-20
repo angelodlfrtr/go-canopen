@@ -124,7 +124,7 @@ func (network *Network) Send(arbID uint32, data []byte) error {
 	// Set data in frame
 	frm.Data = arr
 
-	// Write frame to serial port
+	// Write frame to port
 	return network.Bus.Write(frm)
 }
 
