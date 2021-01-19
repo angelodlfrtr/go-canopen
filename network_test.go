@@ -165,7 +165,6 @@ func TestAll(t *testing.T) {
 		wg.Add(1)
 
 		go func(node *Node) {
-
 			// Parse eds file
 			dic := DicMustParse(DicEDSParse(objectDicFilePath))
 
@@ -246,7 +245,6 @@ func TestReboot(t *testing.T) {
 		wg.Add(1)
 
 		go func(node *Node) {
-
 			// Parse eds file
 			dic := DicMustParse(DicEDSParse(objectDicFilePath))
 

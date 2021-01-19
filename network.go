@@ -234,6 +234,10 @@ func (network *Network) ReleaseFramesChan(id string) {
 
 // Search send data to network and wait for nodes response
 func (network *Network) Search(limit int, timeout time.Duration) ([]*Node, error) {
+	if limit == 0 {
+		limit = 127
+	}
+
 	// Nodes found
 	nodes := make([]*Node, 0, limit)
 
@@ -261,24 +265,22 @@ func (network *Network) Search(limit int, timeout time.Duration) ([]*Node, error
 			nodeID := int(frm.ArbitrationID & 0x7F)
 
 			if nodeID != 0 {
-				if !utils.ContainsUint32(services, uint32(nodeID)) {
-					if utils.ContainsUint32(services, service) {
-						// Append only if not already exist in nodes slice
-						nodeExist := false
-						for _, n := range nodes {
-							if n.ID == nodeID {
-								nodeExist = true
-								break
-							}
+				if utils.ContainsUint32(services, service) {
+					// Append only if not already exist in nodes slice
+					nodeExist := false
+					for _, n := range nodes {
+						if n.ID == nodeID {
+							nodeExist = true
+							break
 						}
-
-						if nodeExist {
-							continue
-						}
-
-						nNode := NewNode(nodeID, nil, nil)
-						nodes = append(nodes, nNode)
 					}
+
+					if nodeExist {
+						continue
+					}
+
+					nNode := NewNode(nodeID, nil, nil)
+					nodes = append(nodes, nNode)
 				}
 			}
 		}

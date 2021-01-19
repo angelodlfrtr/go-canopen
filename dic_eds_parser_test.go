@@ -1957,7 +1957,6 @@ ObjFlags=0x0
 func TestDicEDSParse(t *testing.T) {
 	// Parse file
 	dic, err := DicEDSParse([]byte(TestEDSFile))
-
 	if err != nil {
 		t.Fatal(err)
 	}
