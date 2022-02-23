@@ -53,8 +53,8 @@ func searchNodes() ([]*Node, error) {
 
 	// Run search (in my case), node ids a returned after ~~500ms
 	// So be secure with timeout
-	timeout := time.Duration(2) * time.Second
-	nodes, err := network.Search(256, timeout)
+	timeout := 1 * time.Second
+	nodes, err := network.Search(127, timeout)
 	if err != nil {
 		return nil, err
 	}

@@ -238,29 +238,17 @@ func (network *Network) Search(limit int, timeout time.Duration) ([]*Node, error
 		limit = 127
 	}
 
-	// Nodes found
-	nodes := make([]*Node, 0, limit)
-
-	// Send ping for `limit` nodes
-	reqData := []byte{0x40, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00}
-	for i := 1; i <= limit; i++ {
-		if err := network.Send(uint32(0x600+i), reqData); err != nil {
-			return nil, err
-		}
-	}
-
 	// Canopen service
 	services := []uint32{0x700, 0x580, 0x180, 0x280, 0x380, 0x480, 0x80}
 
+	// Listen messages
 	framesChan := network.AcquireFramesChan(nil)
-	timer := time.NewTimer(timeout)
 
-	for {
-		select {
-		case <-timer.C:
-			network.ReleaseFramesChan(framesChan.ID)
-			return nodes, nil
-		case frm := <-framesChan.C:
+	// Nodes found
+	nodes := make([]*Node, 0, limit)
+
+	go func() {
+		for frm := range framesChan.C {
 			service := frm.ArbitrationID & 0x780
 			nodeID := int(frm.ArbitrationID & 0x7F)
 
@@ -284,5 +272,24 @@ func (network *Network) Search(limit int, timeout time.Duration) ([]*Node, error
 				}
 			}
 		}
+	}()
+
+	// Send ping for `limit` nodes
+	reqData := []byte{0x40, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00}
+	for i := 1; i <= limit; i++ {
+		if err := network.Send(uint32(0x600+i), reqData); err != nil {
+			return nil, err
+		}
+
+		time.Sleep(1 * time.Millisecond)
 	}
+
+	// timer := time.NewTimer(timeout)
+	time.Sleep(timeout)
+
+	// Release fram chan (will stop goroutine)
+	network.ReleaseFramesChan(framesChan.ID)
+
+	// Return nodes
+	return nodes, nil
 }
